@@ -277,6 +277,14 @@ struct android_app
    jmethodID getPersistedSafTrees;
    bool have_saf;
 #endif
+
+#ifdef HAVE_XR
+   /* Headset touch on the picture, 0..1 from its top left.
+    * Written from the XR render thread under 'mutex'. */
+   float xr_touch_x;
+   float xr_touch_y;
+   bool xr_touch_down;
+#endif
 };
 
 enum

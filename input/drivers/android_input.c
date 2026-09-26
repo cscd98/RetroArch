@@ -170,6 +170,9 @@ typedef struct android_input
    float mouse_x_prev, mouse_y_prev;
    struct input_pointer pointer[MAX_TOUCH];     /* int16_t alignment */
    char device_model[256];
+#ifdef HAVE_XR
+   bool xr_touching;
+#endif
 } android_input_t;
 
 bool (*engine_lookup_name)(char *buf,
@@ -2615,6 +2618,54 @@ static void android_input_reinit(void)
 
 /* Handle all events.
  */
+#ifdef HAVE_XR
+/* The headset's laser or fingertip on the picture acts as one touch. */
+static void android_input_poll_xr_touch(android_input_t *android)
+{
+   struct android_app *android_app = (struct android_app*)g_android;
+   struct video_viewport vp        = {0};
+   float x, y;
+   bool down;
+
+   slock_lock(android_app->mutex);
+   x    = android_app->xr_touch_x;
+   y    = android_app->xr_touch_y;
+   down = android_app->xr_touch_down;
+   slock_unlock(android_app->mutex);
+
+   if (!down)
+   {
+      if (android->xr_touching)
+      {
+         android->xr_touching   = false;
+         android->pointer_count = 0;
+      }
+      return;
+   }
+
+   if (!video_driver_get_viewport_info(&vp))
+      return;
+   x *= VIDEO_SCALE_W(vp.full_dims);
+   y *= VIDEO_SCALE_H(vp.full_dims);
+
+   video_driver_translate_coord_viewport_confined_wrap(
+         &vp, x, y,
+         &android->pointer[0].confined_x,
+         &android->pointer[0].confined_y,
+         &android->pointer[0].full_x,
+         &android->pointer[0].full_y);
+   video_driver_translate_coord_viewport_wrap(
+         &vp, x, y,
+         &android->pointer[0].x,
+         &android->pointer[0].y,
+         &android->pointer[0].full_x,
+         &android->pointer[0].full_y);
+
+   android->xr_touching   = true;
+   android->pointer_count = MAX(android->pointer_count, 1);
+}
+#endif
+
 static void android_input_poll(void *data)
 {
    int ident;
@@ -2625,6 +2676,10 @@ static void android_input_poll(void *data)
 
    /* Apply any text staged by the native (IME) keyboard. */
    android_keyboard_poll();
+
+#ifdef HAVE_XR
+   android_input_poll_xr_touch(android);
+#endif
 
    /* Backgrounded (APP_CMD_PAUSE/STOP set RUNLOOP_FLAG_IDLE): there is
     * nothing to do until the OS delivers the next command, and the

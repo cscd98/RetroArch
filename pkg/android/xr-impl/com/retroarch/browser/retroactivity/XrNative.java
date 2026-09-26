@@ -22,4 +22,10 @@ final class XrNative
       String modelPath, float[] settings);
 
   static native void requestExit();
+
+  /** New settings, in the same order as run() takes them; applied on the next frame. */
+  static native void setSettings(float[] settings);
+
+  /** Switches TV model; null for the built-in one. */
+  static native void setModel(String modelPath);
 }

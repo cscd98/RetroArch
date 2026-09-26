@@ -1697,6 +1697,21 @@ JNIEXPORT void JNICALL Java_com_retroarch_browser_retroactivity_XrSession_native
    if (g_android_early)
       android_app_write_cmd(g_android_early, APP_CMD_XR_MENU_TOGGLE);
 }
+
+JNIEXPORT void JNICALL Java_com_retroarch_browser_retroactivity_XrSession_nativeSetXrTouch
+      (JNIEnv *env, jclass clazz, jfloat x, jfloat y, jboolean down)
+{
+   struct android_app *android_app = g_android_early;
+
+   if (!android_app)
+      return;
+
+   slock_lock(android_app->mutex);
+   android_app->xr_touch_x    = x;
+   android_app->xr_touch_y    = y;
+   android_app->xr_touch_down = down ? true : false;
+   slock_unlock(android_app->mutex);
+}
 #endif
 
 JNIEXPORT void JNICALL Java_com_retroarch_browser_retroactivity_RetroActivityCommon_safTreeAdded
