@@ -1152,6 +1152,12 @@ typedef struct video_driver
     * initializers leave it zero (== DONT_CARE) without shifting any
     * other vtable slot. */
    const struct font_renderer *font_backend;
+
+#ifdef HAVE_OPENXR
+   bool (*get_vr_eye_state)(void *data, struct retro_vr_eye_state *out);
+   bool (*set_vr_content_info)(void *data, const struct retro_vr_content_info *info);
+#endif
+
 } video_driver_t;
 
 /* Slots of video_driver_state_t::vp_params_bits in use. The array has
@@ -2238,6 +2244,8 @@ extern const gfx_ctx_driver_t gfx_ctx_mali_fbdev;
 extern const gfx_ctx_driver_t gfx_ctx_vivante_fbdev;
 extern const gfx_ctx_driver_t gfx_ctx_android;
 extern const gfx_ctx_driver_t gfx_ctx_vk_android;
+extern const gfx_ctx_driver_t gfx_ctx_vk_android_openxr;
+extern const gfx_ctx_driver_t gfx_ctx_gl_android_openxr;
 extern const gfx_ctx_driver_t gfx_ctx_ps3;
 extern const gfx_ctx_driver_t gfx_ctx_w_vk;
 extern const gfx_ctx_driver_t gfx_ctx_wgl;

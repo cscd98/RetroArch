@@ -8707,6 +8707,11 @@ static void input_keys_pressed(
                   port, RETRO_DEVICE_JOYPAD, 0,
                   i);
 
+#ifdef HAVE_OPENXR
+      if (i == RARCH_MENU_TOGGLE && port == 0)
+         bit_pressed = bit_pressed || vk_android_openxr_menu_long_press();
+#endif
+
       if (     bit_pressed
             || other_pressed
             || BIT64_GET(lifecycle_state, i))

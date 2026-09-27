@@ -3993,6 +3993,20 @@ static void slang_pass_build_commands(struct slang_pass *pass,
 
    pass->current_framebuffer_size_dims = size_dims;
 
+   RARCH_DBG("[XR-FC] final=%d original=%ux%u source=%ux%u "
+          "output=%ux%u vp=%f,%f %fx%f\n",
+      pass->final_pass,
+      VIDEO_SCALE_W(original->texture.dims),
+      VIDEO_SCALE_H(original->texture.dims),
+      VIDEO_SCALE_W(source->texture.dims),
+      VIDEO_SCALE_H(source->texture.dims),
+      VIDEO_SCALE_W(pass->current_framebuffer_size_dims),
+      VIDEO_SCALE_H(pass->current_framebuffer_size_dims),
+      pass->curr_vp.x,
+      pass->curr_vp.y,
+      pass->curr_vp.width,
+      pass->curr_vp.height);
+
    if (pass->reflection.ubo_stage_mask && pass->common->ubo_mapped)
       u = pass->common->ubo_mapped + pass->ubo_offset +
          pass->sync_index * pass->common->ubo_sync_index_stride;

@@ -127,7 +127,11 @@ enum vk_flags
    VK_FLAG_GPU_RECORDING       = (1 << 19),
    /* VK_ERROR_DEVICE_LOST was seen and reported to the runloop once;
     * the frames until the reinit fail quietly. */
-   VK_FLAG_DEVICE_LOST_REPORTED = (1 << 20)
+   VK_FLAG_DEVICE_LOST_REPORTED = (1 << 20),
+   /* frontend uses openxr */
+   VK_FLAG_OPEN_XR              = (1 << 21),
+   /* core opted into VR via SET_VR_CONTENT_INFO */
+   VK_FLAG_XR_STEREO            = (1 << 22)
 };
 
 enum vk_texture_type
@@ -424,6 +428,10 @@ void vulkan_debug_mark_buffer(VkDevice device, VkBuffer buffer);
 
 bool vulkan_context_init(gfx_ctx_vulkan_data_t *vk,
       enum vulkan_wsi_type type);
+
+#ifdef HAVE_OPENXR
+bool vulkan_context_init_headless_device(gfx_ctx_vulkan_data_t *vk);
+#endif
 
 #ifdef __APPLE__
 /* Returns the version string of the MoltenVK implementation in use,

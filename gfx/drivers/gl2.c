@@ -95,6 +95,10 @@ static bool gl2_core_context_is_mains(gl2_t *gl);
 #endif
 #endif
 
+#ifdef HAVE_OPENXR
+#include "../drivers_context/gl_android_openxr.h"
+#endif
+
 #ifndef GL_UNSIGNED_INT_8_8_8_8_REV
 #define GL_UNSIGNED_INT_8_8_8_8_REV       0x8367
 #endif
@@ -492,7 +496,11 @@ static void gl2_set_viewport(gl2_t *gl,
 void glkitview_bind_fbo(void);
 #define gl2_renderchain_bind_backbuffer() glkitview_bind_fbo()
 #else
+#if defined(HAVE_OPENXR) && defined(ANDROID)
+#define gl2_renderchain_bind_backbuffer() gl2_bind_fb(gl_android_openxr_get_framebuffer())
+#else
 #define gl2_renderchain_bind_backbuffer() gl2_bind_fb(0)
+#endif
 #endif
 
 /* Defined with the scRGB helpers further down; referenced from the
@@ -4439,6 +4447,14 @@ static bool gl2_frame(void *data, const void *frame,
 #endif
 
    gl->shader->use(gl, gl->shader_data, 1, true);
+
+#ifdef HAVE_OPENXR
+   if (gl_android_openxr_active())
+   {
+      gl_android_openxr_begin_frame();
+      gl2_bind_fb(gl_android_openxr_get_framebuffer());
+   }
+#endif
 
 #if TARGET_OS_IPHONE
    /* Apparently the viewport is lost each frame, thanks Apple. */

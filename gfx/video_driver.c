@@ -293,6 +293,9 @@ static const gfx_ctx_driver_t *gfx_ctx_gl_drivers[] = {
    &gfx_ctx_drm,
 #endif
 #if defined(ANDROID)
+#ifdef HAVE_OPENXR
+   &gfx_ctx_gl_android_openxr,
+#endif
    &gfx_ctx_android,
 #endif
 #if defined(__QNX__)
@@ -2986,6 +2989,11 @@ void video_driver_set_stub_frame(void)
 {
    video_driver_state_t *video_st = &video_driver_st;
    video_driver_t *vid            = video_st->current_video;
+
+   // no driver yet or stub already installed
+   if (!vid || !vid->frame || video_st->frame_bak)
+      return;
+
    video_st->frame_bak            = vid->frame;
    vid->frame                     = video_null.frame;
 }
@@ -2994,7 +3002,7 @@ void video_driver_unset_stub_frame(void)
 {
    video_driver_state_t *video_st = &video_driver_st;
    video_driver_t *vid            = video_st->current_video;
-   if (video_st->frame_bak)
+   if (vid && video_st->frame_bak)
       vid->frame                  = video_st->frame_bak;
 
    video_st->frame_bak            = NULL;
@@ -8392,3 +8400,26 @@ VIDEO_NOINLINE static void video_driver_scanline_after_frame(video_driver_state_
 
    video_st->scanline[SCANLINE_NEXT]  = scanline;
 }
+
+#ifdef HAVE_OPENXR
+bool video_driver_set_vr_content_info(const struct retro_vr_content_info *info)
+{
+   video_driver_state_t *video_st = video_state_get_ptr();
+
+   if (!video_st->current_video || !video_st->current_video->set_vr_content_info)
+      return false;
+
+   return video_st->current_video->set_vr_content_info(video_st->data, info);
+}
+
+bool video_driver_get_vr_eye_state(struct retro_vr_eye_state *out)
+{
+   video_driver_state_t *video_st = video_state_get_ptr();
+
+   if (!video_st->current_video || !video_st->current_video->get_vr_eye_state)
+      return false;
+
+   return video_st->current_video->get_vr_eye_state(
+         video_st->data, out);
+}
+#endif

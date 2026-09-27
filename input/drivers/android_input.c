@@ -943,7 +943,14 @@ static void android_input_poll_main_cmd(void)
 
       case APP_CMD_INIT_WINDOW:
          android_lifecycle_window_set(&android_app->lc, msg.arg);
+#ifdef HAVE_OPENXR
+         video_driver_state_t *state = video_state_get_ptr();
+         if (!(state->current_video_context.ident
+            && string_is_equal(state->current_video_context.ident, "vk_android_openxr")))
+            android_app->reinitRequested = 1;
+#else
          android_app->reinitRequested = 1;
+#endif
          android_lifecycle_done(&android_app->lc);
 
          /* A resume brings a NEW window, and the display mode and
@@ -966,6 +973,22 @@ static void android_input_poll_main_cmd(void)
 
          if (!hold_ack)
             android_lifecycle_set_state(&android_app->lc, cmd);
+#ifdef HAVE_OPENXR
+         if (cmd == APP_CMD_PAUSE)
+         {
+            android_state_flush_pending = true;
+            android_keypress_vibrate_pending = false;
+            if (hold_ack)
+               android_state_ack_cmd = APP_CMD_PAUSE;
+         }
+         else
+         {
+            android_state_flush_pending = false;
+            android_state_flushed = false;
+            android_state_ack_cmd = -1;
+         }
+         break;
+#endif
          /* RESUME/START can arrive before INIT_WINDOW. In that case,
           * wait for INIT_WINDOW rather than falling back to a full
           * video-driver reinitialization without a native window. */
@@ -1083,6 +1106,16 @@ static void android_input_poll_main_cmd(void)
                enable_gyroscope     = false;
             }
 
+#ifndef HAVE_XR
+            /* Under XR the 2D window's focus does not decide whether we
+             * run; the session state does. LOST_FOCUS never set PAUSED/IDLE
+             * or installed the stub frame in this build, so there is
+             * nothing to undo here. */
+            runloop_st->flags &= ~(RUNLOOP_FLAG_PAUSED
+                                 | RUNLOOP_FLAG_IDLE);
+            video_driver_unset_stub_frame();
+#endif
+
             runloop_st->flags &= ~(RUNLOOP_FLAG_PAUSED
                                  | RUNLOOP_FLAG_IDLE);
             video_driver_unset_stub_frame();
@@ -1152,6 +1185,12 @@ static void android_input_poll_main_cmd(void)
          retro_atomic_store_release_int(&android_app->unfocused, 0);
          break;
       case APP_CMD_LOST_FOCUS:
+#ifdef HAVE_XR
+         /* Focus is owned by the XR session; the 2D window's focus says
+          * nothing about whether we should be rendering. */
+         retro_atomic_store_release_int(&android_app->unfocused, 1);
+         break;
+#endif
          android_keypress_vibrate_pending = false;
          {
             runloop_state_t *runloop_st = runloop_state_get_ptr();
@@ -2828,8 +2867,16 @@ static void android_input_poll_input_default(android_input_t *android)
                else if ((source & (AINPUT_SOURCE_TOUCHSCREEN
                            | AINPUT_SOURCE_MOUSE_RELATIVE
                            | AINPUT_SOURCE_STYLUS | AINPUT_SOURCE_MOUSE)))
+#ifndef HAVE_OPENXR
                   android_input_poll_event_type_motion(android, event,
                         port, source);
+#else
+                  { } // noop if menu active?
+#endif
+               else if ((source & (AINPUT_SOURCE_TOUCHSCREEN
+                           | AINPUT_SOURCE_MOUSE_RELATIVE
+                           | AINPUT_SOURCE_STYLUS | AINPUT_SOURCE_MOUSE)))
+                  break;
                else
                   engine_handle_dpad(android_app, event, port, source);
                break;

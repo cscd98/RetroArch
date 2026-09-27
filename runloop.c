@@ -4129,6 +4129,33 @@ bool runloop_environment_cb(unsigned cmd, void *data)
             }
          }
          break;
+#ifdef HAVE_OPENXR
+      case RETRO_ENVIRONMENT_SET_VR_CONTENT_INFO:
+         {
+            const struct retro_vr_content_info *vr_info =
+               (const struct retro_vr_content_info*)data;
+            bool session_active = video_driver_set_vr_content_info(vr_info);
+
+            runloop_st->core_vr_content = session_active;
+
+            RARCH_LOG("[Environ] SET_VR_CONTENT_INFO: %s.\n",
+                  session_active ? "VR session active" : "unavailable");
+
+            return session_active;
+         }
+
+      case RETRO_ENVIRONMENT_GET_VR_EYE_STATE:
+         {
+            struct retro_vr_eye_state *out = (struct retro_vr_eye_state*)data;
+
+            if (!out)
+               return false;
+            if (!runloop_st->core_vr_content)
+               return false;
+
+            return video_driver_get_vr_eye_state(out);
+         }
+#endif
       default:
          RARCH_LOG("[Environ] UNSUPPORTED (#%u).\n", cmd);
          return false;
