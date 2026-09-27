@@ -48,6 +48,7 @@ bool android_display_has_focus(void *data);
 
 static void android_gfx_ctx_vk_destroy(void *data)
 {
+   RARCH_DBG("[XR] android_gfx_ctx_vk_destroy called..\n");
    android_ctx_data_vk_t *and         = (android_ctx_data_vk_t*)data;
    struct android_app *android_app = (struct android_app*)g_android;
 

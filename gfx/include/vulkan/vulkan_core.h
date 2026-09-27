@@ -10261,6 +10261,10 @@ typedef struct VkPhysicalDeviceTexelBufferAlignmentPropertiesEXT {
 #define VK_GOOGLE_USER_TYPE_SPEC_VERSION  1
 #define VK_GOOGLE_USER_TYPE_EXTENSION_NAME "VK_GOOGLE_user_type"
 
+#define VK_VERSION_1_2 1
+// Vulkan 1.2 version number
+#define VK_API_VERSION_1_2 VK_MAKE_VERSION(1, 2, 0) /* Patch version should always be set to 0 */
+
 #ifdef __cplusplus
 }
 #endif

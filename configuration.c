@@ -476,7 +476,7 @@ static const enum video_driver_enum VIDEO_DEFAULT_DRIVER = VIDEO_METAL;
 static const enum video_driver_enum VIDEO_DEFAULT_DRIVER = VIDEO_D3D11;
 #elif defined(HAVE_GXM)
 static const enum video_driver_enum VIDEO_DEFAULT_DRIVER = VIDEO_GXM;
-#elif defined(HAVE_OPENGL) || defined(HAVE_OPENGLES) || defined(HAVE_PSGL)
+#elif (defined(HAVE_OPENGL) || defined(HAVE_OPENGLES) || defined(HAVE_PSGL))
 static const enum video_driver_enum VIDEO_DEFAULT_DRIVER = VIDEO_GL;
 #elif defined(HAVE_OPENGL_CORE) && !defined(__HAIKU__)
 static const enum video_driver_enum VIDEO_DEFAULT_DRIVER = VIDEO_GL_CORE;
