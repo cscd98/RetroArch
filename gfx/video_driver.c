@@ -39,6 +39,15 @@
 #include "video_driver.h"
 #include "gfx_instrument.h"
 
+#ifdef HAVE_OPENXR
+#if defined(ANDROID)
+#ifdef HAVE_VULKAN
+#include "drivers_context/android_vk_openxr.h"
+#endif
+#include "drivers_context/gl_android_openxr.h"
+#endif
+#endif
+
 /* Decided here, at the top, because an #ifdef on a macro defined
  * later in the file is silently false: the first user of this gate
  * is video_driver_lock_new()'s mailbox drain, far above the title
@@ -293,6 +302,9 @@ static const gfx_ctx_driver_t *gfx_ctx_gl_drivers[] = {
    &gfx_ctx_drm,
 #endif
 #if defined(ANDROID)
+#ifdef HAVE_OPENXR
+   &gfx_ctx_gl_android_openxr,
+#endif
    &gfx_ctx_android,
 #endif
 #if defined(__QNX__)
@@ -2636,6 +2648,8 @@ void video_driver_hw_request_restore(const struct video_hw_request *req)
 
 void video_driver_free_internal(void)
 {
+   RARCH_DBG("[Video] *** video_driver_free_internal() CALLED ***\n");
+
    video_driver_state_t *video_st = &video_driver_st;
    const video_driver_t *vid      = video_st->current_video;
    bool had_data                  = (video_st->data != NULL);
@@ -2652,6 +2666,13 @@ void video_driver_free_internal(void)
     * those are this driver's, which is about to go. */
    input_overlay_video_teardown();
 #endif
+
+   uint32_t dbg_flags =
+      (uint32_t)retro_atomic_load_relaxed_int(&video_driver_st.flags);
+
+   RARCH_DBG("[Video] free_internal: video_flags=0x%x CACHE=%d\n",
+         dbg_flags,
+         !!(dbg_flags & VIDEO_FLAG_CACHE_CONTEXT));
 
    if (!((uint32_t)retro_atomic_load_relaxed_int(&video_st->flags) & VIDEO_FLAG_CACHE_CONTEXT))
       video_driver_free_hw_context();
@@ -3004,6 +3025,11 @@ void video_driver_set_stub_frame(void)
 {
    video_driver_state_t *video_st = &video_driver_st;
    video_driver_t *vid            = video_st->current_video;
+
+   // no driver yet or stub already installed
+   if (!vid || !vid->frame || video_st->frame_bak)
+      return;
+
    video_st->frame_bak            = vid->frame;
    vid->frame                     = video_null.frame;
 }
@@ -3012,7 +3038,7 @@ void video_driver_unset_stub_frame(void)
 {
    video_driver_state_t *video_st = &video_driver_st;
    video_driver_t *vid            = video_st->current_video;
-   if (video_st->frame_bak)
+   if (vid && video_st->frame_bak)
       vid->frame                  = video_st->frame_bak;
 
    video_st->frame_bak            = NULL;
@@ -7827,6 +7853,9 @@ if (!VIDEO_DRIVER_IS_THREADED_INTERNAL(video_st))
 
 static void video_driver_reinit_context(settings_t *settings, int flags)
 {
+   RARCH_DBG("[Video] *** video_driver_reinit_context(flags=0x%x) ***\n",
+      flags);
+
    /* RARCH_DRIVER_CTL_UNINIT clears the callback struct so we
     * need to make sure to keep a copy */
    struct retro_hw_render_callback hwr_copy;
@@ -7860,12 +7889,29 @@ void video_driver_reinit(int flags)
    video_driver_state_t *video_st          = &video_driver_st;
    struct retro_hw_render_callback *hwr    =
          VIDEO_DRIVER_GET_HW_CONTEXT_INTERNAL(video_st);
+#ifdef HAVE_OPENXR
+   bool cache_openxr_context =
+         video_st->current_video_context.ident
+      && string_is_equal(video_st->current_video_context.ident,
+            "android_vk_openxr")
+      && string_is_equal(settings->arrays.video_driver, "vulkan");
+#endif
 
+#ifdef HAVE_OPENXR
+   if (hwr->cache_context || cache_openxr_context)
+#else
    if (hwr->cache_context != false)
+#endif
       video_driver_modify_disp_flags(VIDEO_FLAG_CACHE_CONTEXT, 0);
    else
       video_driver_modify_disp_flags(0, VIDEO_FLAG_CACHE_CONTEXT);
    video_driver_cache_context_ack_clear();
+
+   RARCH_DBG("[Video] reinit: hwr->cache_context=%d flags=0x%x video_flags=0x%x\n",
+      hwr->cache_context,
+      flags,
+      (uint32_t)retro_atomic_load_relaxed_int(&video_st->flags));
+
    video_driver_reinit_context(settings, flags);
    video_driver_modify_disp_flags(0, VIDEO_FLAG_CACHE_CONTEXT);
 
@@ -8540,3 +8586,148 @@ VIDEO_NOINLINE static void video_driver_scanline_after_frame(video_driver_state_
 
    video_st->scanline[SCANLINE_NEXT]  = scanline;
 }
+
+#ifdef HAVE_OPENXR
+enum { VR_CTX_NONE = 0, VR_CTX_VK, VR_CTX_GL };
+
+static uint32_t video_vr_frame_flags;
+static uint32_t vr_ctx_id;
+
+static int video_driver_vr_ctx(void)
+{
+   const char *id = video_driver_st.current_video_context.ident;
+
+   if (vr_ctx_id)
+      return vr_ctx_id;
+
+   RARCH_DBG("[XR] video_driver_vr_ctx id: %s\n", id ? id : "(null)");
+
+   if (!id)
+      vr_ctx_id = VR_CTX_NONE;
+   if (string_is_equal(id, "android_vk_openxr"))
+      vr_ctx_id = VR_CTX_VK;
+   if (string_is_equal(id, "gl_android_openxr"))
+      vr_ctx_id = VR_CTX_GL;
+
+   return vr_ctx_id;
+}
+
+void video_driver_vr_content_clear(void)
+{
+#if defined(ANDROID)
+   gl_android_openxr_set_stereo(false);
+#endif
+}
+
+/* Called by the runloop once per iteration, BEFORE retro_run(), so the
+ * pose a core reads is the one the frame will be rendered with. */
+bool video_driver_vr_sample_tracking(void)
+{
+   bool ok        = false;
+   uint32_t flags = 0;
+
+   switch (video_driver_vr_ctx())
+   {
+#if defined(ANDROID) && defined(HAVE_VULKAN)
+      case VR_CTX_VK:
+         ok = android_vk_openxr_sample_tracking();
+         flags = android_vk_openxr_take_frame_flags();
+         break;
+#endif
+#if defined(ANDROID)
+      case VR_CTX_GL:
+         ok = gl_android_openxr_sample_tracking();
+         flags = gl_android_openxr_take_frame_flags();
+         break;
+#endif
+      default:
+         break;
+   }
+
+   video_vr_frame_flags = flags;
+
+   return ok;
+}
+
+bool video_driver_set_vr_content_info(struct retro_vr_content_info *info)
+{
+   video_driver_state_t *video_st = video_state_get_ptr();
+   unsigned w = 0, h = 0;
+
+   // reset stored graphics driver id (in case of reinit)
+   vr_ctx_id = 0;
+
+   if (!video_st->current_video || !video_st->current_video->set_vr_content_info)
+   {
+      RARCH_ERR("[XR] set_vr_content_info unavailable\n");
+      return false;
+   }
+
+   if (info && info->layout != RETRO_VR_LAYOUT_SIDE_BY_SIDE)
+   {
+      RARCH_ERR("[XR] Unsupported VR layout %d.\n", (int)info->layout);
+      return false;
+   }
+
+   if (!video_st->current_video->set_vr_content_info(video_st->data, info))
+   {
+      RARCH_ERR("[XR] Unable to set VR content info...\n");
+      return false;
+   }
+
+   if (!info)
+   {
+      RARCH_DBG("[XR] VR content info cleared.\n");
+      gl_android_openxr_set_stereo(false);
+      return true;
+   }
+
+   switch (video_driver_vr_ctx())
+   {
+#if defined(ANDROID) && defined(HAVE_VULKAN)
+      case VR_CTX_VK:
+         android_vk_openxr_set_reference_space(&info->reference_space);
+         android_vk_openxr_get_eye_size(&w, &h);
+         break;
+#endif
+#if defined(ANDROID)
+      case VR_CTX_GL:
+         gl_android_openxr_set_stereo(true);
+         gl_android_openxr_set_reference_space(&info->reference_space);
+         gl_android_openxr_get_eye_size(&w, &h);
+         break;
+#endif
+      default:
+         break;
+   }
+
+   info->recommended_eye_width  = w;
+   info->recommended_eye_height = h;
+
+   return true;
+}
+
+bool video_driver_get_vr_head_pose(struct retro_vr_head_pose *out)
+{
+   switch (video_driver_vr_ctx())
+   {
+#if defined(ANDROID) && defined(HAVE_VULKAN)
+      case VR_CTX_VK: return android_vk_openxr_get_head_pose(out);
+#endif
+#if defined(ANDROID)
+      case VR_CTX_GL: return gl_android_openxr_get_head_pose(out);
+#endif
+      default: break;
+   }
+   return false;
+}
+
+bool video_driver_get_vr_frame_state(struct retro_vr_frame_state *out)
+{
+   video_driver_state_t *video_st = video_state_get_ptr();
+   if (!video_st->current_video->get_vr_frame_state(video_st->data, out))
+      return false;
+   out->flags = video_vr_frame_flags;
+   return true;
+}
+#endif

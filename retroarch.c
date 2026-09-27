@@ -1919,6 +1919,9 @@ void driver_uninit(int flags, enum driver_lifetime_flags lifetime_flags)
    dispgfx_widget_t *p_dispwidget   = dispwidget_get_ptr();
 #endif
 
+   RARCH_DBG("[Driver] *** driver_uninit(flags=0x%x lifetime=%d) ***\n",
+      flags, lifetime_flags);
+
    DRIVER_FLAGS_NORMALIZE(flags);
 
    core_info_deinit_list();
