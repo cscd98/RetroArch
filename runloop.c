@@ -238,6 +238,7 @@ bool android_get_vfs_authorized_locations(
 #include "location_driver.h"
 #include "core.h"
 #include "configuration.h"
+#include "network/alvr_server.h"
 #include "list_special.h"
 #include "core_option_manager.h"
 #ifdef HAVE_CHEATS
@@ -9810,6 +9811,7 @@ int runloop_iterate(void)
    bool frame_advanced                    = false;
    bool savestate_automatic_enable        = settings->uints.savestate_automatic_interval > 0;
 
+   alvr_server_poll();
    recording_gpu_poll();
    runloop_msg_queue_drain_deferred();
 

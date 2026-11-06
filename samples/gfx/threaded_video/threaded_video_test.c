@@ -10407,10 +10407,11 @@ static void recread_viewport_info(void *data, struct video_viewport *vp)
 /* B = x, G = the row from the top, R = 0x5a: B,G,R,X top row first, or
  * BGR24 bottom row first. */
 static bool recread_read(void *data, uint8_t *buffer, bool bgrx,
-      bool *bottom_up)
+      bool full, bool *bottom_up)
 {
    unsigned x, y;
    (void)data;
+   (void)full;
    for (y = 0; y < RECREAD_H; y++)
       for (x = 0; x < RECREAD_W; x++)
       {

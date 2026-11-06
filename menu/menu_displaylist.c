@@ -11936,6 +11936,9 @@ unsigned menu_displaylist_build_list(
             bool network_cmd_enable      = settings->bools.network_cmd_enable;
             bool network_remote_enable   = settings->bools.network_remote_enable;
             static menu_displaylist_build_info_selective_t build_list[] = {
+#ifdef HAVE_ALVR
+               {MENU_ENUM_LABEL_ALVR_SETTINGS, PARSE_ACTION, true},
+#endif
 #ifdef HAVE_SMBCLIENT
                {MENU_ENUM_LABEL_SMB_CLIENT_SETTINGS,                PARSE_ACTION,      true},
 #endif
@@ -13222,6 +13225,20 @@ unsigned menu_displaylist_build_list(
                         PARSE_ACTION, false) == 0)
                   count++;
             }
+         }
+#endif
+#ifdef HAVE_ALVR
+#ifdef HAVE_OPENXR
+         if (!video_driver_has_headset_path(settings->arrays.video_driver))
+#endif
+         {
+            static const menu_displaylist_settings_row_t alvr_screen_rows[] = {
+               { MENU_ENUM_LABEL_VIDEO_OPENXR_PLACEMENT, PARSE_ONLY_UINT, false },
+               { MENU_ENUM_LABEL_VIDEO_OPENXR_DISTANCE, PARSE_ONLY_FLOAT, false },
+               { MENU_ENUM_LABEL_VIDEO_OPENXR_WIDTH, PARSE_ONLY_FLOAT, false },
+            };
+            count += menu_displaylist_parse_settings_rows(list, settings,
+                  alvr_screen_rows, (unsigned)ARRAY_SIZE(alvr_screen_rows));
          }
 #endif
          break;
@@ -15372,6 +15389,24 @@ unsigned menu_displaylist_build_list(
 #endif /* HAVE_CDROM */
          break;
 #endif /* HAVE_LAKKA */
+#ifdef HAVE_ALVR
+      case DISPLAYLIST_ALVR_SETTINGS_LIST:
+         {
+            static const menu_displaylist_build_info_t build_list[] = {
+               {MENU_ENUM_LABEL_ALVR_ENABLE, PARSE_ONLY_BOOL},
+               {MENU_ENUM_LABEL_ALVR_CLIENT_ADDRESS, PARSE_ONLY_STRING},
+               {MENU_ENUM_LABEL_ALVR_VIEW_SIZE, PARSE_ONLY_UINT},
+               {MENU_ENUM_LABEL_ALVR_BITRATE, PARSE_ONLY_UINT},
+               {MENU_ENUM_LABEL_ALVR_ENCODER, PARSE_ONLY_UINT},
+               {MENU_ENUM_LABEL_ALVR_CODEC, PARSE_ONLY_UINT}
+            };
+            for (i = 0; i < ARRAY_SIZE(build_list); i++)
+               if (MENU_DISPLAYLIST_PARSE_SETTINGS_ENUM(list,
+                        build_list[i].enum_idx, build_list[i].parse_type, false) == 0)
+                  count++;
+         }
+         break;
+#endif
 #ifdef HAVE_SMBCLIENT
       case DISPLAYLIST_SMB_CLIENT_SETTINGS_LIST:
          {
@@ -18050,6 +18085,9 @@ static bool menu_displaylist_ctl_internal(
 #endif
 #ifdef HAVE_GAME_AI
          case DISPLAYLIST_OPTIONS_GAME_AI:
+#endif
+#ifdef HAVE_ALVR
+         case DISPLAYLIST_ALVR_SETTINGS_LIST:
 #endif
 #ifdef HAVE_SMBCLIENT
          case DISPLAYLIST_SMB_CLIENT_SETTINGS_LIST:

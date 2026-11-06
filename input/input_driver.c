@@ -124,6 +124,9 @@
 #endif
 
 #include "../ai/game_ai.h"
+#ifdef HAVE_ALVR
+#include "../network/alvr_server.h"
+#endif
 #include <compat/strl.h>
 #ifdef HAVE_MCP
 #include "../network/mcp_server.h"
@@ -2987,6 +2990,7 @@ static INLINE int32_t input_state_wrap(
       unsigned idx,
       unsigned id)
 {
+   int32_t ret;
    if (     binds && device == RETRO_DEVICE_JOYPAD
          && id >= RARCH_FIRST_CUSTOM_BIND && id < RARCH_BIND_LIST_END
          && input && input->keys_down && _port < MAX_USERS)
@@ -3030,11 +3034,31 @@ static INLINE int32_t input_state_wrap(
             input_st->joypad_state_cache[_port]  = ret;
             input_st->frame_valid.joypad_cache  |= (1 << _port);
          }
+#ifdef HAVE_ALVR
+         if (_port == 0)
+            ret |= alvr_server_input_buttons();
+#endif
          return ret;
       }
    }
-   return input_state_wrap_slow(input, data, joypad,          joypad_info, binds, keyboard_mapping_blocked,
+   ret = input_state_wrap_slow(input, data, joypad,          joypad_info, binds, keyboard_mapping_blocked,
          _port, device, idx, id);
+#ifdef HAVE_ALVR
+   if (_port == 0)
+   {
+      if (device == RETRO_DEVICE_JOYPAD)
+      {
+         unsigned buttons = alvr_server_input_buttons();
+         if (id == RETRO_DEVICE_ID_JOYPAD_MASK)
+            ret |= buttons;
+         else if (id < RARCH_FIRST_CUSTOM_BIND)
+            ret |= (buttons >> id) & 1u;
+      }
+      else if (device == RETRO_DEVICE_ANALOG && !ret)
+         ret = alvr_server_input_analog(idx, id);
+   }
+#endif
+   return ret;
 }
 
 /* A pad axis's value, as read, through the deadzone and the
@@ -14334,6 +14358,10 @@ static bool input_keys_pressed_other_sources(
    }
 #endif
 
+#ifdef HAVE_ALVR
+   if (i == RARCH_MENU_TOGGLE && alvr_server_input_menu())
+      return true;
+#endif
 #ifdef HAVE_OPENXR
    if (input_openxr_hotkey(i))
       return true;
@@ -14373,6 +14401,9 @@ static unsigned input_pad_buttons_other_sources(
       held |= (unsigned)(input_st->remote_st_ptr.buttons[0] & 0xffff);
 #endif
 
+#ifdef HAVE_ALVR
+   held |= alvr_server_input_buttons();
+#endif
    input_st->system_buttons_not_overlay |= (uint16_t)held;
 
 #ifdef HAVE_OVERLAY
@@ -18460,6 +18491,9 @@ void input_driver_poll(void)
             input_st->first_press_pending |= INPUT_FIRST_PRESS_ANNOUNCE;
       }
    }
+#ifdef HAVE_ALVR
+   alvr_server_input_poll(input_axis_threshold);
+#endif
    input_poll_generation++;
    input_port_keys_at_poll(input_st->current_driver,
          input_st->current_data, max_users);

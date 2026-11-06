@@ -457,6 +457,11 @@ static enum msg_hash_enums action_ok_dl_to_enum(unsigned lbl)
          return MENU_ENUM_LABEL_DEFERRED_USER_INTERFACE_SETTINGS_LIST;
       case ACTION_OK_DL_AI_SERVICE_SETTINGS_LIST:
          return MENU_ENUM_LABEL_DEFERRED_AI_SERVICE_SETTINGS_LIST;
+#ifdef HAVE_ALVR
+      case ACTION_OK_DL_ALVR_SETTINGS_LIST:
+         return MENU_ENUM_LABEL_DEFERRED_ALVR_SETTINGS_LIST;
+
+#endif
 #ifdef HAVE_SMBCLIENT
       case ACTION_OK_DL_SMB_CLIENT_SETTINGS_LIST:
          return MENU_ENUM_LABEL_DEFERRED_SMB_CLIENT_SETTINGS_LIST;
@@ -1909,6 +1914,9 @@ int generic_action_ok_displaylist_push(
       case ACTION_OK_DL_QUICK_MENU_OVERRIDE_OPTIONS_LIST:
       case ACTION_OK_DL_USER_INTERFACE_SETTINGS_LIST:
       case ACTION_OK_DL_AI_SERVICE_SETTINGS_LIST:
+#ifdef HAVE_ALVR
+      case ACTION_OK_DL_ALVR_SETTINGS_LIST:
+#endif
 #ifdef HAVE_SMBCLIENT
       case ACTION_OK_DL_SMB_CLIENT_SETTINGS_LIST:
 #endif
@@ -7404,6 +7412,9 @@ STATIC_DEFAULT_ACTION_OK_FUNC(action_ok_push_microphone_settings_list, ACTION_OK
 #ifdef HAVE_AUDIOMIXER
 STATIC_DEFAULT_ACTION_OK_FUNC(action_ok_push_audio_mixer_settings_list, ACTION_OK_DL_AUDIO_MIXER_SETTINGS_LIST)
 #endif
+#ifdef HAVE_ALVR
+STATIC_DEFAULT_ACTION_OK_FUNC(action_ok_push_alvr_settings_list, ACTION_OK_DL_ALVR_SETTINGS_LIST)
+#endif
 #ifdef HAVE_SMBCLIENT
 STATIC_DEFAULT_ACTION_OK_FUNC(action_ok_push_smb_client_settings_list, ACTION_OK_DL_SMB_CLIENT_SETTINGS_LIST)
 #endif
@@ -10221,6 +10232,9 @@ static int menu_cbs_init_bind_ok_compare_label(menu_file_list_cbs_t *cbs,
          {MENU_ENUM_LABEL_NETPLAY_ENABLE_HOST,                 action_ok_netplay_enable_host},
          {MENU_ENUM_LABEL_NETPLAY_ENABLE_CLIENT,               action_ok_netplay_enable_client},
          {MENU_ENUM_LABEL_NETPLAY_DISCONNECT,                  action_ok_netplay_disconnect},
+#endif
+#ifdef HAVE_ALVR
+         {MENU_ENUM_LABEL_ALVR_SETTINGS, action_ok_push_alvr_settings_list},
 #endif
 #ifdef HAVE_SMBCLIENT
          {MENU_ENUM_LABEL_SMB_CLIENT_SETTINGS,                 action_ok_push_smb_client_settings_list},

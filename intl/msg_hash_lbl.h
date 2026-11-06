@@ -3888,3 +3888,8 @@ MSG_HASH(
    "nfs_client_browse"
    )
 #endif
+
+#ifdef HAVE_ALVR
+MSG_HASH(MENU_ENUM_LABEL_DEFERRED_ALVR_SETTINGS_LIST,
+      "deferred_alvr_settings_list")
+#endif

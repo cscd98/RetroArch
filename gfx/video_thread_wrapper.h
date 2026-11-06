@@ -1237,8 +1237,8 @@ void video_thread_invalidate_hw_render_cache(void *data);
  * record yet, and -2 when the driver has no recording reader, for the
  * caller to use read_viewport(). Starts the readbacks on first use and
  * again at a new output size or format. Viewport changes are scaled and
- * letterboxed by the worker. */
-int video_thread_record_take(void *data, unsigned dims, bool bgrx,
+ * letterboxed by the worker. @full reads the whole composed output. */
+int video_thread_record_take(void *data, unsigned dims, bool bgrx, bool full,
       const uint8_t **frame, bool *bottom_up);
 /* Whether video_thread_record_take() reads back on the video thread,
  * in either format, rather than returning -2. Main thread. */

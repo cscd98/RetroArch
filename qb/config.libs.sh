@@ -931,6 +931,14 @@ check_enabled 'DYLIB DYNAMIC' VAAPI 'VA-API' 'Dynamic loading is' false
 check_header '' VAAPI va/va.h va/va_dec_hevc.h va/va_drmcommon.h
 check_macro VAAPI VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME_2 va/va_drmcommon.h
 
+check_enabled THREADS ALVR ALVR 'Threads are' false
+check_enabled NETWORKING ALVR ALVR 'Networking is' false
+check_enabled DYLIB ALVR ALVR 'Dynamic libraries are' false
+if [ "$OS" != 'Win32' ]; then
+   check_platform Linux ALVR 'ALVR is' true
+   check_enabled VULKAN ALVR ALVR 'Vulkan is' false
+fi
+
 check_platform Linux OPENXR 'OpenXR is' true
 check_enabled 'VULKAN OPENGL OPENGL_CORE' OPENXR OpenXR 'Vulkan and OpenGL are' false
 check_enabled THREADS OPENXR OpenXR 'Threads are' false

@@ -2216,6 +2216,9 @@ static int menu_cbs_init_bind_get_string_representation_compare_label(
 #ifdef HAVE_GAME_AI
          case MENU_ENUM_LABEL_CORE_GAME_AI_OPTIONS:
 #endif
+#ifdef HAVE_ALVR
+         case MENU_ENUM_LABEL_ALVR_SETTINGS:
+#endif
 #ifdef HAVE_SMBCLIENT
          case MENU_ENUM_LABEL_SMB_CLIENT_SETTINGS:
 #endif

@@ -3868,6 +3868,11 @@ extern const struct msg_hash_us_lbl_blob_s msg_hash_us_lbl_blob;
 #else
 #define MENU_ENUM_LABEL_NFS_CLIENT_BROWSE_STR "nfs_client_browse"
 #endif
+#if defined(HAVE_MENU) && (((defined(HAVE_ALVR))))
+#define MENU_ENUM_LABEL_DEFERRED_ALVR_SETTINGS_LIST_STR (msg_hash_us_lbl_blob.m_MENU_ENUM_LABEL_DEFERRED_ALVR_SETTINGS_LIST)
+#else
+#define MENU_ENUM_LABEL_DEFERRED_ALVR_SETTINGS_LIST_STR "deferred_alvr_settings_list"
+#endif
 #if defined(HAVE_MENU) && (((defined(HAVE_GAME_AI))))
 #define MENU_ENUM_LABEL_QUICK_MENU_SHOW_GAME_AI_STR (msg_hash_us_lbl_blob.m_MENU_ENUM_LABEL_QUICK_MENU_SHOW_GAME_AI)
 #else
@@ -4043,6 +4048,36 @@ extern const struct msg_hash_us_lbl_blob_s msg_hash_us_lbl_blob;
 #else
 #define MENU_ENUM_LABEL_SMB_CLIENT_ENABLE_STR "smb_client_enable"
 #endif
+#if defined(HAVE_MENU) && (((defined(HAVE_ALVR))))
+#define MENU_ENUM_LABEL_ALVR_ENABLE_STR (msg_hash_us_lbl_blob.m_MENU_ENUM_LABEL_ALVR_ENABLE)
+#else
+#define MENU_ENUM_LABEL_ALVR_ENABLE_STR "alvr_enable"
+#endif
+#if defined(HAVE_MENU) && (((defined(HAVE_ALVR))))
+#define MENU_ENUM_LABEL_ALVR_CLIENT_ADDRESS_STR (msg_hash_us_lbl_blob.m_MENU_ENUM_LABEL_ALVR_CLIENT_ADDRESS)
+#else
+#define MENU_ENUM_LABEL_ALVR_CLIENT_ADDRESS_STR "alvr_client_address"
+#endif
+#if defined(HAVE_MENU) && (((defined(HAVE_ALVR))))
+#define MENU_ENUM_LABEL_ALVR_VIEW_SIZE_STR (msg_hash_us_lbl_blob.m_MENU_ENUM_LABEL_ALVR_VIEW_SIZE)
+#else
+#define MENU_ENUM_LABEL_ALVR_VIEW_SIZE_STR "alvr_view_size"
+#endif
+#if defined(HAVE_MENU) && (((defined(HAVE_ALVR))))
+#define MENU_ENUM_LABEL_ALVR_BITRATE_STR (msg_hash_us_lbl_blob.m_MENU_ENUM_LABEL_ALVR_BITRATE)
+#else
+#define MENU_ENUM_LABEL_ALVR_BITRATE_STR "alvr_bitrate"
+#endif
+#if defined(HAVE_MENU) && (((defined(HAVE_ALVR))))
+#define MENU_ENUM_LABEL_ALVR_CODEC_STR (msg_hash_us_lbl_blob.m_MENU_ENUM_LABEL_ALVR_CODEC)
+#else
+#define MENU_ENUM_LABEL_ALVR_CODEC_STR "alvr_codec"
+#endif
+#if defined(HAVE_MENU) && (((defined(HAVE_ALVR))))
+#define MENU_ENUM_LABEL_ALVR_ENCODER_STR (msg_hash_us_lbl_blob.m_MENU_ENUM_LABEL_ALVR_ENCODER)
+#else
+#define MENU_ENUM_LABEL_ALVR_ENCODER_STR "alvr_encoder"
+#endif
 #if defined(HAVE_MENU) && (((defined(HAVE_SMBCLIENT))))
 #define MENU_ENUM_LABEL_SMB_CLIENT_SETTINGS_STR (msg_hash_us_lbl_blob.m_MENU_ENUM_LABEL_SMB_CLIENT_SETTINGS)
 #else
@@ -4052,6 +4087,11 @@ extern const struct msg_hash_us_lbl_blob_s msg_hash_us_lbl_blob;
 #define MENU_ENUM_LABEL_NFS_CLIENT_SETTINGS_STR (msg_hash_us_lbl_blob.m_MENU_ENUM_LABEL_NFS_CLIENT_SETTINGS)
 #else
 #define MENU_ENUM_LABEL_NFS_CLIENT_SETTINGS_STR "nfs_client_settings"
+#endif
+#if defined(HAVE_MENU) && (((defined(HAVE_ALVR))))
+#define MENU_ENUM_LABEL_ALVR_SETTINGS_STR (msg_hash_us_lbl_blob.m_MENU_ENUM_LABEL_ALVR_SETTINGS)
+#else
+#define MENU_ENUM_LABEL_ALVR_SETTINGS_STR "alvr_settings"
 #endif
 #if defined(HAVE_MENU) && (((defined(HAVE_MIST))))
 #define MENU_ENUM_LABEL_CORE_MANAGER_STEAM_LIST_STR (msg_hash_us_lbl_blob.m_MENU_ENUM_LABEL_CORE_MANAGER_STEAM_LIST)

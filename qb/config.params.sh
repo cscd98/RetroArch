@@ -74,6 +74,7 @@ HAVE_NETPLAYDISCOVERY=yes  # Add netplay discovery (room creation, etc.)
 HAVE_NETWORKGAMEPAD=auto   # Networked game pad (plus baked-in core)
 C89_NETWORKGAMEPAD=no
 HAVE_COMMAND=no            # Network command interface, to remote control RA
+HAVE_ALVR=no               # ALVR headset streaming server (requires threads, networking and a native encoder)
 HAVE_MCP=yes               # MCP server for AI assistants (needs networking and the command interface; off unless enabled in settings)
 HAVE_ONLINE_UPDATER=yes    # Online updater
 HAVE_UPDATE_CORES=yes      # Downloading cores with the online updater

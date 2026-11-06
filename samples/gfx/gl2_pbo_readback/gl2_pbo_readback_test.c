@@ -223,7 +223,7 @@ int main(void)
       gl.flags &= ~GL2_FLAG_PBO_READBACK_ENABLE;
       CHECK(gl2_poke_interface.record_read != NULL,
             "the poke carries the reader");
-      CHECK(!gl2_poke_interface.record_read(&gl, out, true, &bottom_up)
+      CHECK(!gl2_poke_interface.record_read(&gl, out, true, false, &bottom_up)
             && (gl.flags & GL2_FLAG_PBO_READBACK_ENABLE),
             "first call starts the readbacks, no frame");
 
@@ -233,7 +233,7 @@ int main(void)
       for (i = 1; i <= syncs_created; i++)
          sync_signalled[i] = 1;
       memset(out, 0, W * H * 4);
-      CHECK(gl2_poke_interface.record_read(&gl, out, true, &bottom_up)
+      CHECK(gl2_poke_interface.record_read(&gl, out, true, false, &bottom_up)
             && bottom_up, "BGRX frame read, bottom row first");
       for (bad = 0, y = 0; y < H; y++)
          for (x = 0; x < W; x++)
@@ -251,7 +251,7 @@ int main(void)
          sync_signalled[i] = 1;
       memset(out, 0, W * H * 4);
       bottom_up = false;
-      CHECK(gl2_poke_interface.record_read(&gl, out, false, &bottom_up)
+      CHECK(gl2_poke_interface.record_read(&gl, out, false, false, &bottom_up)
             && bottom_up, "BGR24 frame read, bottom row first");
       for (bad = 0, y = 0; y < H; y++)
          for (x = 0; x < W; x++)
@@ -261,6 +261,17 @@ int main(void)
                bad++;
          }
       CHECK(!bad, "BGR24 rows are the PBO's, converted");
+      for (i = 0; i < 4; i++)
+         gl2_pbo_async_readback(&gl);
+      for (i = 1; i <= syncs_created; i++)
+         sync_signalled[i] = 1;
+      gl.vp.full_dims = gl.vp.dims;
+      gl.vp.dims = VIDEO_SCALE_PACK(W / 2, H);
+      CHECK(gl2_poke_interface.record_read(&gl, out, true, true, &bottom_up),
+            "ALVR reads the full output with a narrower game viewport");
+      CHECK(gl.vp.dims == VIDEO_SCALE_PACK(W / 2, H),
+            "ALVR preserves the game viewport");
+      gl.vp.dims = gl.vp.full_dims;
       gl2_free_pbo_readback(&gl);
    }
 

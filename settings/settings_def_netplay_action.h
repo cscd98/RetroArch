@@ -16,3 +16,10 @@ S_ACTION(NFS_CLIENT_SETTINGS,
       "NFS Network Settings",
       "Configure NFS export settings.")
 #endif
+
+#ifdef HAVE_ALVR
+S_ACTION(ALVR_SETTINGS,
+      "alvr_settings",
+      "ALVR Server",
+      "Stream games to an ALVR headset.")
+#endif

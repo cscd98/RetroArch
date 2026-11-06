@@ -702,6 +702,15 @@ DEFAULT_SUBLABEL_MACRO(action_bind_sublabel_game_ai_override_p2,            MENU
 DEFAULT_SUBLABEL_MACRO(action_bind_sublabel_game_ai_show_debug,            MENU_ENUM_SUBLABEL_GAME_AI_SHOW_DEBUG)
 #endif
 
+#ifdef HAVE_ALVR
+DEFAULT_SUBLABEL_MACRO(action_bind_sublabel_alvr_settings, MENU_ENUM_SUBLABEL_ALVR_SETTINGS)
+DEFAULT_SUBLABEL_MACRO(action_bind_sublabel_alvr_enable, MENU_ENUM_SUBLABEL_ALVR_ENABLE)
+DEFAULT_SUBLABEL_MACRO(action_bind_sublabel_alvr_client_address, MENU_ENUM_SUBLABEL_ALVR_CLIENT_ADDRESS)
+DEFAULT_SUBLABEL_MACRO(action_bind_sublabel_alvr_view_size, MENU_ENUM_SUBLABEL_ALVR_VIEW_SIZE)
+DEFAULT_SUBLABEL_MACRO(action_bind_sublabel_alvr_bitrate, MENU_ENUM_SUBLABEL_ALVR_BITRATE)
+DEFAULT_SUBLABEL_MACRO(action_bind_sublabel_alvr_encoder, MENU_ENUM_SUBLABEL_ALVR_ENCODER)
+DEFAULT_SUBLABEL_MACRO(action_bind_sublabel_alvr_codec, MENU_ENUM_SUBLABEL_ALVR_CODEC)
+#endif
 #ifdef HAVE_SMBCLIENT
 DEFAULT_SUBLABEL_MACRO(action_bind_sublabel_smb_client_settings,                         MENU_ENUM_SUBLABEL_SMB_CLIENT_SETTINGS)
 DEFAULT_SUBLABEL_MACRO(action_bind_sublabel_smb_client_enable,                           MENU_ENUM_SUBLABEL_SMB_CLIENT_ENABLE)
@@ -4147,6 +4156,29 @@ int menu_cbs_init_bind_sublabel(menu_file_list_cbs_t *cbs,
             break;
          case MENU_ENUM_LABEL_GAME_AI_SHOW_DEBUG:
             BIND_ACTION_SUBLABEL(cbs, action_bind_sublabel_game_ai_show_debug);
+            break;
+#endif
+#ifdef HAVE_ALVR
+         case MENU_ENUM_LABEL_ALVR_SETTINGS:
+            BIND_ACTION_SUBLABEL(cbs, action_bind_sublabel_alvr_settings);
+            break;
+         case MENU_ENUM_LABEL_ALVR_ENABLE:
+            BIND_ACTION_SUBLABEL(cbs, action_bind_sublabel_alvr_enable);
+            break;
+         case MENU_ENUM_LABEL_ALVR_CLIENT_ADDRESS:
+            BIND_ACTION_SUBLABEL(cbs, action_bind_sublabel_alvr_client_address);
+            break;
+         case MENU_ENUM_LABEL_ALVR_VIEW_SIZE:
+            BIND_ACTION_SUBLABEL(cbs, action_bind_sublabel_alvr_view_size);
+            break;
+         case MENU_ENUM_LABEL_ALVR_BITRATE:
+            BIND_ACTION_SUBLABEL(cbs, action_bind_sublabel_alvr_bitrate);
+            break;
+         case MENU_ENUM_LABEL_ALVR_CODEC:
+            BIND_ACTION_SUBLABEL(cbs, action_bind_sublabel_alvr_codec);
+            break;
+         case MENU_ENUM_LABEL_ALVR_ENCODER:
+            BIND_ACTION_SUBLABEL(cbs, action_bind_sublabel_alvr_encoder);
             break;
 #endif
 #ifdef HAVE_SMBCLIENT

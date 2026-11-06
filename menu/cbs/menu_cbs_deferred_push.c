@@ -308,6 +308,9 @@ GENERIC_DEFERRED_PUSH(deferred_push_file_browser_select_sideload_core, DISPLAYLI
 GENERIC_DEFERRED_PUSH(deferred_push_core_game_ai_options,             DISPLAYLIST_OPTIONS_GAME_AI)
 #endif
 
+#ifdef HAVE_ALVR
+GENERIC_DEFERRED_PUSH(deferred_push_alvr_settings_list, DISPLAYLIST_ALVR_SETTINGS_LIST)
+#endif
 #ifdef HAVE_SMBCLIENT
 GENERIC_DEFERRED_PUSH(deferred_push_smb_client_settings_list,       DISPLAYLIST_SMB_CLIENT_SETTINGS_LIST)
 GENERIC_DEFERRED_PUSH(deferred_push_smb_client_options,             DISPLAYLIST_OPTIONS_SMB_CLIENT)
@@ -907,6 +910,9 @@ static int menu_cbs_init_bind_deferred_push_compare_label(
       {MENU_ENUM_LABEL_CORE_GAME_AI_OPTIONS, deferred_push_core_game_ai_options},
 #endif
 
+#ifdef HAVE_ALVR
+      {MENU_ENUM_LABEL_DEFERRED_ALVR_SETTINGS_LIST, deferred_push_alvr_settings_list},
+#endif
 #ifdef HAVE_SMBCLIENT
       {MENU_ENUM_LABEL_DEFERRED_SMB_CLIENT_SETTINGS_LIST, deferred_push_smb_client_settings_list},
       {MENU_ENUM_LABEL_SMB_CLIENT_SETTINGS, deferred_push_smb_client_options},

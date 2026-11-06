@@ -10170,6 +10170,7 @@ MSG_HASH(MENU_ENUM_SUBLABEL_##T, sub)
 #define S_ACTION_EX_NS(T, n, sd, ok, rp, c, us) \
 MSG_HASH(MENU_ENUM_LABEL_VALUE_##T, us)
 #include "../settings/settings_def_audio_format.h"
+#include "../settings/settings_def_alvr.h"
 #undef S_BOOL
 #undef S_BOOL_NS
 #undef S_BOOL_H

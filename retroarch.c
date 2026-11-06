@@ -230,6 +230,7 @@
 #include "midi_driver.h"
 #include "core.h"
 #include "configuration.h"
+#include "network/alvr_server.h"
 #include "list_special.h"
 #include "manual_content_scan.h"
 #ifdef HAVE_CHEATS
@@ -11082,6 +11083,7 @@ static bool retroarch_main_quit_begin(void)
 
    if (runloop_st->flags & RUNLOOP_FLAG_SHUTDOWN_INITIATED)
       return false;
+   alvr_server_stop();
    recording_gpu_stop();
    if (recording_state_get_ptr()->start_pending)
       command_event(CMD_EVENT_RECORD_DEINIT, NULL);
@@ -11224,11 +11226,11 @@ bool retroarch_main_quit_staged(void)
          || !video_st->data
          || !video_st->current_video->alive
          || !video_st->current_video->alive(video_st->data))
-         && !recording_gpu_pending())
+         && !recording_gpu_pending() && !alvr_server_pending())
       return retroarch_main_quit();
 
    first = retroarch_main_quit_begin();
-   if (!first || (!retroarch_quit_state_task_pending(NULL) && !recording_gpu_pending()))
+   if (!first || (!retroarch_quit_state_task_pending(NULL) && !recording_gpu_pending() && !alvr_server_pending()))
    {
       retroarch_main_quit_finish(first);
       return true;
@@ -11257,8 +11259,10 @@ bool retroarch_main_quit_poll(void)
 
    if (!runloop_st->quit_pending)
       return false;
+   alvr_server_poll();
    recording_gpu_poll();
-   if (retroarch_quit_state_task_pending(NULL) || recording_gpu_pending())
+   if (retroarch_quit_state_task_pending(NULL) || recording_gpu_pending()
+         || alvr_server_pending())
       return false;
    runloop_st->quit_pending = false;
    retroarch_main_quit_finish(true);
