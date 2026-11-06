@@ -452,9 +452,11 @@ VIDEO CONTEXT
 #endif
 #endif
 
+#if defined(HAVE_OPENXR) || defined(HAVE_ALVR)
+#include "../gfx/video_xr.c"
+#endif
 #ifdef HAVE_OPENXR
 /* The headset's units that name no graphics API. */
-#include "../gfx/video_xr.c"
 #include "../gfx/common/openxr_runtime.c"
 #include "../gfx/common/openxr_session.c"
 #include "../gfx/common/openxr_tracking.c"
@@ -1657,6 +1659,18 @@ RETROARCH
 #if defined(HAVE_MCP) && defined(HAVE_NETWORK_CMD) && defined(HAVE_COMMAND)
 #include "../network/mcp_server.c"
 #endif
+#ifdef HAVE_ALVR
+#include "../network/alvr_protocol.c"
+#include "../network/alvr_connection.c"
+#include "../network/alvr_stream.c"
+#include "../network/alvr_server.c"
+#if defined(HAVE_VULKAN) || defined(HAVE_ALVR_VULKAN)
+#include "../gfx/common/vulkan_video_encode.c"
+#endif
+#ifdef _WIN32
+#include "../gfx/common/mf_video_encode.c"
+#endif
+#endif
 #include "../ui/ui_companion_driver.c"
 #ifdef HAVE_COMPANION_WIMP
 #include "../ui/companion/companion_core.c"
@@ -1706,8 +1720,10 @@ RECORDING
 #include "../record/drivers/record_nvenc.c"
 #include "../record/drivers/record_metal.c"
 #include "../record/drivers/record_mediacodec.c"
-#ifdef HAVE_RECORD_MEDIACODEC
+#if defined(HAVE_RECORD_MEDIACODEC) || defined(HAVE_ALVR)
 #include "../record/record_audio_tap.c"
+#endif
+#ifdef HAVE_RECORD_MEDIACODEC
 #include "../record/record_aac_probe.c"
 #include "../record/record_mp4_audio_edit.c"
 #include "../record/record_mediacodec_encoder.c"

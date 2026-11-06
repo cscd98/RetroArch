@@ -7882,7 +7882,17 @@ static bool gl3_frame(void *data, const void *frame,
          glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
    }
    else if (!video_info->record_game_only || gl->scrgb.active)
-      gl3_record_readback(gl, !video_info->record_game_only);
+   {
+      struct video_viewport saved = gl->vp;
+      if (video_info->alvr_capture)
+      {
+         gl->vp.pos = VIDEO_POS_PACK(0, 0);
+         gl->vp.dims = gl->vp.full_dims;
+      }
+      gl3_record_readback(gl, !video_info->record_game_only
+            && !video_info->alvr_capture);
+      gl->vp = saved;
+   }
 
 #ifdef HAVE_GL3_XR
    if (xr_draw)
@@ -8981,6 +8991,57 @@ static void gl3_hw_context_destroying(void *data)
 }
 #endif
 
+#ifdef HAVE_ALVR
+static bool gl3_record_read_viewport(void *data, uint8_t *buffer, bool bgrx,
+      bool *bottom_up)
+{
+   gl3_t *gl = (gl3_t*)data;
+   bool shared, result;
+   if (!gl || !(gl->flags & GL3_FLAG_GPU_RECORDING))
+      return false;
+
+   if (!(gl->flags & GL3_FLAG_PBO_READBACK_ENABLE)
+         || (unsigned)gl->pbo_readback_scaler.in_width != VIDEO_SCALE_W(gl->vp.dims)
+         || (unsigned)gl->pbo_readback_scaler.in_height != VIDEO_SCALE_H(gl->vp.dims))
+   {
+      gl3_deinit_pbo_readback(gl);
+      gl->flags |= GL3_FLAG_PBO_READBACK_ENABLE;
+      if (!gl3_init_pbo_readback(gl))
+         gl->flags &= ~GL3_FLAG_PBO_READBACK_ENABLE;
+      return false;
+   }
+
+   *bottom_up = true;
+   /* The capture caller already owns the renderer context. */
+   shared = (gl->flags & GL3_FLAG_USE_SHARED_CONTEXT) != 0;
+   gl->flags &= ~GL3_FLAG_USE_SHARED_CONTEXT;
+   result = gl3_read_viewport_internal(gl, buffer, true, bgrx);
+   if (shared)
+      gl->flags |= GL3_FLAG_USE_SHARED_CONTEXT;
+   return result;
+}
+
+static bool gl3_record_read(void *data, uint8_t *buffer, bool bgrx,
+      bool full, bool *bottom_up)
+{
+   gl3_t *gl = (gl3_t*)data;
+   struct video_viewport saved;
+   bool result;
+   if (!gl)
+      return false;
+   saved = gl->vp;
+   if (full)
+   {
+      gl->vp.pos = VIDEO_POS_PACK(0, 0);
+      gl->vp.dims = gl->vp.full_dims;
+   }
+   result = gl3_record_read_viewport(data, buffer, bgrx, bottom_up);
+   gl->vp = saved;
+   return result;
+}
+
+#endif
+
 static const video_poke_interface_t gl3_poke_interface = {
    gl3_get_flags,
    gl3_load_texture,
@@ -9052,11 +9113,19 @@ static const video_poke_interface_t gl3_poke_interface = {
 #ifdef HAVE_GL_FRAME_MEM
    gl3_frame_mem_alloc,
    gl3_frame_mem_ready,
-   gl3_frame_mem_free
+   gl3_frame_mem_free,
 #else
    NULL, /* frame_mem_alloc */
    NULL, /* frame_mem_ready */
-   NULL  /* frame_mem_free */
+   NULL, /* frame_mem_free */
+#endif
+   NULL, /* get_device */
+   NULL, /* import_texture */
+   NULL, /* get_last_present_sync */
+#ifdef HAVE_ALVR
+   gl3_record_read
+#else
+   NULL /* record_read */
 #endif
 };
 

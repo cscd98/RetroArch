@@ -19662,6 +19662,9 @@ enum msg_hash_enums
    MENU_ENUM_LABEL_DEFERRED_REWIND_SETTINGS_LIST,
    MENU_ENUM_LABEL_DEFERRED_FRAME_TIME_COUNTER_SETTINGS_LIST,
    MENU_ENUM_LABEL_DEFERRED_AI_SERVICE_SETTINGS_LIST,
+#ifdef HAVE_ALVR
+   MENU_ENUM_LABEL_DEFERRED_ALVR_SETTINGS_LIST,
+#endif
 #ifdef HAVE_SMBCLIENT
    MENU_ENUM_LABEL_DEFERRED_SMB_CLIENT_SETTINGS_LIST,
 #endif
@@ -21416,6 +21419,7 @@ enum msg_hash_enums
 #define S_ACTION_EX_H(T, n, sd, ok, rp, c, us, sub) MENU_LBL_H(T),
 #define S_ACTION_EX_NS_H(T, n, sd, ok, rp, c, us) MENU_LBL_H(T),
 #include "settings/settings_def_audio_format.h"
+#include "settings/settings_def_alvr.h"
 #undef S_BOOL
 #undef S_BOOL_NS
 #undef S_UINT

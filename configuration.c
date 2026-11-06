@@ -2135,6 +2135,9 @@ static struct config_array_setting *populate_settings_array(
    SETTING_ARRAY("ai_service_url",                        settings->arrays.ai_service_url, true, DEFAULT_AI_SERVICE_URL, true);
 #endif
 
+#ifdef HAVE_ALVR
+   SETTING_ARRAY("alvr_client_address", settings->arrays.alvr_client_address, true, "", true);
+#endif
 #ifdef HAVE_SMBCLIENT
    SETTING_ARRAY("smb_client_server_address",             settings->arrays.smb_client_server_address, false, NULL, true);
    SETTING_ARRAY("smb_client_share",                      settings->arrays.smb_client_share, false, NULL, true);
@@ -2627,6 +2630,7 @@ static const struct config_bool_row config_bool_rows[] = {
 #endif
 #endif
 #include "settings/settings_def_audio_format.h"
+#include "settings/settings_def_alvr.h"
 #include "settings/settings_def_menu_main_actions_12.h"
 #include "settings/settings_def_menu_main_actions_11.h"
 #include "settings/settings_def_menu_main_actions_10.h"
@@ -3466,6 +3470,7 @@ static const struct config_float_row config_float_rows[] = {
 #endif
 #endif
 #include "settings/settings_def_audio_format.h"
+#include "settings/settings_def_alvr.h"
 #include "settings/settings_def_menu_main_actions_12.h"
 #include "settings/settings_def_menu_main_actions_11.h"
 #include "settings/settings_def_menu_main_actions_10.h"
@@ -4111,6 +4116,7 @@ static const struct config_uint_row config_uint_rows[] = {
 #endif
 #endif
 #include "settings/settings_def_audio_format.h"
+#include "settings/settings_def_alvr.h"
 #include "settings/settings_def_menu_main_actions_12.h"
 #include "settings/settings_def_menu_main_actions_11.h"
 #include "settings/settings_def_menu_main_actions_10.h"
@@ -4911,6 +4917,7 @@ static const struct config_int_row config_int_rows[] = {
 #endif
 #endif
 #include "settings/settings_def_audio_format.h"
+#include "settings/settings_def_alvr.h"
 #include "settings/settings_def_menu_main_actions_12.h"
 #include "settings/settings_def_menu_main_actions_11.h"
 #include "settings/settings_def_menu_main_actions_10.h"
@@ -5555,6 +5562,7 @@ static struct config_int_setting *populate_settings_int(
 #endif
 #endif
 #include "settings/settings_def_audio_format.h"
+#include "settings/settings_def_alvr.h"
 #include "settings/settings_def_menu_main_actions_12.h"
 #include "settings/settings_def_menu_main_actions_11.h"
 #include "settings/settings_def_menu_main_actions_10.h"

@@ -937,6 +937,9 @@ DEFAULT_TITLE_SEARCH_FILTER_MACRO(action_get_core_manager_steam_list,       MENU
 DEFAULT_TITLE_SEARCH_FILTER_MACRO(action_get_core_game_ai_options_list,       MENU_ENUM_LABEL_VALUE_CORE_GAME_AI_OPTIONS)
 #endif
 
+#ifdef HAVE_ALVR
+DEFAULT_TITLE_MACRO(action_get_alvr_settings_list, MENU_ENUM_LABEL_VALUE_ALVR_SETTINGS)
+#endif
 #ifdef HAVE_SMBCLIENT
 DEFAULT_TITLE_MACRO(action_get_smb_client_settings_list,                      MENU_ENUM_LABEL_VALUE_SMB_CLIENT_SETTINGS)
 #endif
@@ -1127,6 +1130,9 @@ static int menu_cbs_init_bind_title_compare_label(menu_file_list_cbs_t *cbs,
 #ifdef _3DS
       {MENU_ENUM_LABEL_DEFERRED_MENU_BOTTOM_SETTINGS_LIST,            action_get_menu_bottom_settings_list},
 #endif
+#ifdef HAVE_ALVR
+      {MENU_ENUM_LABEL_DEFERRED_ALVR_SETTINGS_LIST, action_get_alvr_settings_list},
+#endif
 #ifdef HAVE_SMBCLIENT
       {MENU_ENUM_LABEL_DEFERRED_SMB_CLIENT_SETTINGS_LIST,             action_get_smb_client_settings_list},
 #endif
@@ -1164,6 +1170,9 @@ static int menu_cbs_init_bind_title_compare_label(menu_file_list_cbs_t *cbs,
 #if defined(HAVE_GAME_AI)
       {MENU_ENUM_LABEL_CORE_GAME_AI_OPTIONS,
          action_get_core_game_ai_options_list},
+#endif
+#ifdef HAVE_ALVR
+      {MENU_ENUM_LABEL_ALVR_SETTINGS, action_get_alvr_settings_list},
 #endif
 #ifdef HAVE_SMBCLIENT
       {MENU_ENUM_LABEL_SMB_CLIENT_SETTINGS,

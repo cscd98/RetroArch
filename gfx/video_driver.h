@@ -771,6 +771,7 @@ typedef struct video_frame_info
     * draws them: it travels with the frame, so the thread that draws
     * never reads the recording state the main thread writes. */
    bool gpu_recording;
+   bool alvr_capture;
    bool recording_gpu_pending;
    bool recording_gpu_capture;
    /* Record Game Only: the driver reads the recording's frame back
@@ -1396,9 +1397,10 @@ typedef struct video_poke_interface
    /* Reads back the frame just drawn for a GPU recording, never
     * redrawing it: BGR24 bottom up, or with @bgrx 32-bit B,G,R,X with
     * *bottom_up set to the row order written; viewport width * 3 or * 4
-    * per row. Called on the video thread; the threaded wrapper records
+    * per row (full output dimensions when @full).
+    * Called on the video thread; the threaded wrapper records
     * through it. Optional. */
-   bool (*record_read)(void *data, uint8_t *buffer, bool bgrx,
+   bool (*record_read)(void *data, uint8_t *buffer, bool bgrx, bool full,
          bool *bottom_up);
    /* Imports a movie frame for the following NULL refresh. NULL clears
     * the movie source. Same ownership results as import_texture. */

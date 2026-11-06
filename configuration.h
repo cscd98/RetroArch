@@ -502,6 +502,12 @@ typedef struct settings
       unsigned cheevos_appearance_anchor;
       unsigned cheevos_visibility_summary;
 
+#ifdef HAVE_ALVR
+      unsigned alvr_view_size;
+      unsigned alvr_bitrate;
+      unsigned alvr_encoder;
+      unsigned alvr_codec;
+#endif
 #ifdef HAVE_SMBCLIENT
       unsigned smb_client_auth_mode;
       unsigned smb_client_num_contexts;
@@ -1303,6 +1309,9 @@ typedef struct settings
       bool game_ai_show_debug;
 #endif
 
+#ifdef HAVE_ALVR
+      bool alvr_enable;
+#endif
 #ifdef HAVE_SMBCLIENT
       bool smb_client_enable;
 #endif
@@ -1431,6 +1440,9 @@ typedef struct settings
       char ai_service_url[PATH_MAX_LENGTH];
 
       char translation_service_url[2048]; /* TODO/FIXME - check size */
+#ifdef HAVE_ALVR
+      char alvr_client_address[64];
+#endif
 #ifdef HAVE_SMBCLIENT
       char smb_client_server_address[256];
       char smb_client_share[256];

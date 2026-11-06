@@ -187,6 +187,7 @@
 #include "../settings/settings_def_smb_client.h"
 #include "../settings/settings_def_netplay_stateless.h"
 #include "../settings/settings_def_audio_format.h"
+#include "../settings/settings_def_alvr.h"
 #include "../settings/settings_def_menu_main_actions_12.h"
 #include "../settings/settings_def_menu_main_actions_11.h"
 #include "../settings/settings_def_menu_main_actions_10.h"

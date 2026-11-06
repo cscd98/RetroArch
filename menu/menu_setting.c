@@ -458,6 +458,9 @@ enum settings_list_type
 #ifdef HAVE_NFSCLIENT
    SETTINGS_LIST_NFSCLIENT,
 #endif
+#ifdef HAVE_ALVR
+   SETTINGS_LIST_ALVR,
+#endif
    SETTINGS_LIST_MANUAL_CONTENT_SCAN
 };
 
@@ -4097,6 +4100,16 @@ static size_t setting_get_string_representation_video_openxr_edit_pause(
             ? MENU_ENUM_LABEL_VALUE_VIDEO_OPENXR_EDIT_PAUSE_ON
             : MENU_ENUM_LABEL_VALUE_VIDEO_OPENXR_EDIT_PAUSE_OFF), len);
 }
+
+#ifdef HAVE_ALVR
+static size_t setting_get_string_representation_alvr_codec(
+      rarch_setting_t *setting, char *s, size_t len)
+{
+   static const char *names[] = { "Automatic", "H.264", "H.265 (HEVC)" };
+   unsigned codec = *setting->value.target.unsigned_integer;
+   return strlcpy(s, names[codec < 3 ? codec : 0], len);
+}
+#endif
 
 static size_t setting_get_string_representation_video_openxr_placement(
       rarch_setting_t *setting, char *s, size_t len)
@@ -9520,6 +9533,9 @@ static const enum settings_list_type settings_list_build_order[] =
 #endif
 #ifdef HAVE_NFSCLIENT
       SETTINGS_LIST_NFSCLIENT,
+#endif
+#ifdef HAVE_ALVR
+      SETTINGS_LIST_ALVR,
 #endif
       SETTINGS_LIST_MANUAL_CONTENT_SCAN
    };
@@ -15040,6 +15056,12 @@ static const setting_desc_t privacy_desc_1[] = {
 };
 #endif
 
+#ifdef HAVE_ALVR
+static const setting_desc_t alvr_desc[] = {
+#include "../settings/settings_def_alvr.h"
+};
+#endif
+
 static const setting_desc_t privacy_desc_2[] = {
 /* GENERATED: rows come from settings_def_privacy_location.h in order. */
 #include "../settings/settings_def_privacy_location.h"
@@ -20208,6 +20230,10 @@ static const settings_build_entry_t settings_build_registry[] = {
      MSG_UNKNOWN,
      MENU_ENUM_LABEL_VALUE_STEAM_SETTINGS },
 #endif
+#ifdef HAVE_ALVR
+   { SETTINGS_LIST_ALVR, NULL, alvr_desc, (unsigned)ARRAY_SIZE(alvr_desc),
+     MENU_ENUM_LABEL_VALUE_ALVR_SETTINGS, MSG_UNKNOWN, MENU_ENUM_LABEL_ALVR_SETTINGS },
+#endif
 #ifdef HAVE_SMBCLIENT
    { SETTINGS_LIST_SMBCLIENT, settings_build_smbclient, NULL, 0, MSG_UNKNOWN, MSG_UNKNOWN, MSG_UNKNOWN },
 #endif
@@ -20891,6 +20917,9 @@ static const settings_desc_table_t settings_desc_registry[] = {
    { privacy_desc_1, (uint16_t)ARRAY_SIZE(privacy_desc_1) },
 #endif
    { privacy_desc_2, (uint16_t)ARRAY_SIZE(privacy_desc_2) },
+#ifdef HAVE_ALVR
+   { alvr_desc, (uint16_t)ARRAY_SIZE(alvr_desc) },
+#endif
 #if !defined(RARCH_CONSOLE)
    { midi_devices_desc_0, (uint16_t)ARRAY_SIZE(midi_devices_desc_0) },
    { midi_desc_0, (uint16_t)ARRAY_SIZE(midi_desc_0) },

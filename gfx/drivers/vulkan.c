@@ -9084,13 +9084,14 @@ static void vulkan_set_viewport(void *data, unsigned dims,
    vk->tracker.dirty |= VULKAN_DIRTY_DYNAMIC_BIT;
 }
 
-static void vulkan_readback(vk_t *vk, struct vk_image *readback_image)
+static void vulkan_readback(vk_t *vk, struct vk_image *readback_image, bool full)
 {
    VkBufferImageCopy region;
    struct vk_texture *staging;
    struct video_viewport vp;
    VkMemoryBarrier barrier;
    unsigned slot = vk->context->current_frame_index;
+   struct video_viewport saved = vk->vp;
 
    vk->readback.record[slot].serial = 0;
 
@@ -9099,6 +9100,12 @@ static void vulkan_readback(vk_t *vk, struct vk_image *readback_image)
    vp.full_dims                           = 0;
 
    vulkan_viewport_info(vk, &vp);
+   if (full)
+   {
+      vp.pos = VIDEO_POS_PACK(0, 0);
+      vp.dims = vp.full_dims;
+      vk->vp = vp;
+   }
 
    region.bufferOffset                    = 0;
    /* The staging buffer is allocated at vk->vp.width x vk->vp.height and
@@ -9128,8 +9135,8 @@ static void vulkan_readback(vk_t *vk, struct vk_image *readback_image)
     * otherwise produce an invalid (or wrapped-to-huge) extent.
     * VUID-VkBufferImageCopy-imageOffset-00197 */
    {
-      int rw      = (int)(VIDEO_SCALE_W(vp.dims)  + vk->translate_x);
-      int rh      = (int)(VIDEO_SCALE_H(vp.dims) + vk->translate_y);
+      int rw      = (int)(VIDEO_SCALE_W(vp.dims) + (full ? 0 : vk->translate_x));
+      int rh      = (int)(VIDEO_SCALE_H(vp.dims) + (full ? 0 : vk->translate_y));
       unsigned sw = VIDEO_SCALE_W(vk->context->swapchain_dims);
       unsigned sh = VIDEO_SCALE_H(vk->context->swapchain_dims);
       if (rw < 1)
@@ -9174,7 +9181,10 @@ static void vulkan_readback(vk_t *vk, struct vk_image *readback_image)
    }
 
    if (!staging->memory || !staging->buffer)
+   {
+      vk->vp = saved;
       return;
+   }
    if (vk->flags & VK_FLAG_READBACK_STREAMED)
    {
       VkFormat format = vk->context->swapchain_format;
@@ -9204,6 +9214,7 @@ static void vulkan_readback(vk_t *vk, struct vk_image *readback_image)
          VK_PIPELINE_STAGE_TRANSFER_BIT,
          VK_PIPELINE_STAGE_HOST_BIT, 0,
          1, &barrier, 0, NULL, 0, NULL);
+   vk->vp = saved;
 }
 
 static void vulkan_init_render_target(struct vk_image* image,
@@ -13189,7 +13200,7 @@ static bool vulkan_frame(void *data, const void *frame,
                VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
                VK_PIPELINE_STAGE_TRANSFER_BIT);
 
-         vulkan_readback(vk, backbuffer);
+         vulkan_readback(vk, backbuffer, false);
 
          VULKAN_IMAGE_LAYOUT_TRANSITION(
                vk->cmd,
@@ -13572,7 +13583,7 @@ static bool vulkan_frame(void *data, const void *frame,
                VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
                VK_PIPELINE_STAGE_TRANSFER_BIT);
 
-         vulkan_readback(vk, readback_source);
+         vulkan_readback(vk, readback_source, video_info->alvr_capture);
 
 #ifdef HAVE_OPENXR
          if (vk->flags & VK_FLAG_OPEN_XR)
@@ -16214,7 +16225,7 @@ static bool vulkan_set_frame_format(void *data, bool rgb32,
 }
 
 static bool vulkan_record_read(void *data, uint8_t *buffer, bool bgrx,
-      bool *bottom_up);
+      bool full, bool *bottom_up);
 
 static const video_poke_interface_t vulkan_poke_interface = {
    vulkan_get_flags,
@@ -16329,7 +16340,7 @@ static void vulkan_viewport_info(void *data, struct video_viewport *vp)
    vp->full_dims   = VIDEO_SCALE_PACK(width, height);
 }
 
-static bool vulkan_record_read(void *data, uint8_t *buffer, bool bgrx,
+static bool vulkan_record_read_viewport(void *data, uint8_t *buffer, bool bgrx,
       bool *bottom_up)
 {
    vk_t *vk = (vk_t*)data;
@@ -16448,6 +16459,26 @@ static bool vulkan_record_read(void *data, uint8_t *buffer, bool bgrx,
    vk->readback.consumed = newest;
    return true;
 }
+
+static bool vulkan_record_read(void *data, uint8_t *buffer, bool bgrx,
+      bool full, bool *bottom_up)
+{
+   vk_t *vk = (vk_t*)data;
+   struct video_viewport saved;
+   bool result;
+   if (!vk)
+      return false;
+   saved = vk->vp;
+   if (full)
+   {
+      vk->vp.pos = VIDEO_POS_PACK(0, 0);
+      vk->vp.dims = vk->vp.full_dims;
+   }
+   result = vulkan_record_read_viewport(data, buffer, bgrx, bottom_up);
+   vk->vp = saved;
+   return result;
+}
+
 
 /* bgrx: write top-down 32-bit BGRX (read_viewport_bgrx) instead of
  * bottom-up BGR24. */

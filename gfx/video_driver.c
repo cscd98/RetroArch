@@ -160,6 +160,7 @@ static void video_driver_read_vp_params(struct video_vp_param_snap *ps);
 
 #include "../audio/audio_driver.h"
 #include "../frontend/frontend_driver.h"
+#include "../network/alvr_server.h"
 #include "../record/record_driver.h"
 #include "../record/record_driver.h"
 #include "../ui/ui_companion_driver.h"
@@ -2677,7 +2678,7 @@ static void recording_dump_frame(
        * recording was opened for. */
       if (video_st->thread_wrapper_active)
          taken = video_thread_record_take(video_st->data,
-               record_st->gpu_dims, record_st->gpu_bgrx, &gpu_frame,
+               record_st->gpu_dims, record_st->gpu_bgrx, false, &gpu_frame,
                &bottom_up);
       if (taken == -1)
          return;
@@ -7244,10 +7245,13 @@ void video_driver_build_info(video_frame_info_t *video_info)
 
    video_info->msg_queue_delay             = runloop_st->msg_queue_delay;
    video_info->runloop_is_paused           = (runloop_st->flags & RUNLOOP_FLAG_PAUSED) ? true : false;
-   video_info->gpu_recording               = recording_state_get_ptr()->enable
-      && !recording_is_native_gpu(recording_state_get_ptr()->driver);
+   video_info->alvr_capture                = alvr_server_capture_active();
+   video_info->gpu_recording               = video_info->alvr_capture
+      || (recording_state_get_ptr()->enable
+            && !recording_is_native_gpu(recording_state_get_ptr()->driver));
    recording_gpu_frame_info(video_info, false);
    video_info->record_game_only            = video_info->gpu_recording
+      && !video_info->alvr_capture
       && settings->bools.video_record_game_only;
    video_info->core_running                = !(runloop_st->flags & RUNLOOP_FLAG_PAUSED);
    video_info->menu_content_rate           = false;

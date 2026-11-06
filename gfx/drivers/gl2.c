@@ -7390,7 +7390,17 @@ static bool gl2_frame(void *data, const void *frame,
             gl->readback_buffer_screenshot);
 
    else if (!video_info->record_game_only || gl->scrgb.active)
-      gl2_record_readback(gl, !video_info->record_game_only);
+   {
+      struct video_viewport saved = gl->vp;
+      if (video_info->alvr_capture)
+      {
+         gl->vp.pos = VIDEO_POS_PACK(0, 0);
+         gl->vp.dims = gl->vp.full_dims;
+      }
+      gl2_record_readback(gl, !video_info->record_game_only
+            && !video_info->alvr_capture);
+      gl->vp = saved;
+   }
 
    /* The backbuffer is what it is until the swap, so the copy is
     * taken now. Not from the BFI light dupes, which recurse in here
@@ -9008,7 +9018,7 @@ static bool gl2_read_viewport_bgrx(void *data, uint8_t *buffer,
 }
 
 #if defined(HAVE_GL_ASYNC_READBACK) && !defined(HAVE_OPENGLES) && !defined(HAVE_PSGL)
-static bool gl2_record_read(void *data, uint8_t *buffer, bool bgrx,
+static bool gl2_record_read_viewport(void *data, uint8_t *buffer, bool bgrx,
       bool *bottom_up)
 {
    gl2_t *gl = (gl2_t*)data;
@@ -9031,6 +9041,26 @@ static bool gl2_record_read(void *data, uint8_t *buffer, bool bgrx,
    *bottom_up = true;
    return gl2_read_pbo(gl, buffer, bgrx);
 }
+
+static bool gl2_record_read(void *data, uint8_t *buffer, bool bgrx,
+      bool full, bool *bottom_up)
+{
+   gl2_t *gl = (gl2_t*)data;
+   struct video_viewport saved;
+   bool result;
+   if (!gl)
+      return false;
+   saved = gl->vp;
+   if (full)
+   {
+      gl->vp.pos = VIDEO_POS_PACK(0, 0);
+      gl->vp.dims = gl->vp.full_dims;
+   }
+   result = gl2_record_read_viewport(data, buffer, bgrx, bottom_up);
+   gl->vp = saved;
+   return result;
+}
+
 #endif
 
 #ifdef HAVE_OVERLAY

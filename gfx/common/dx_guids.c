@@ -42,6 +42,11 @@
  && (!defined(WINAPI_FAMILY) || (WINAPI_FAMILY == WINAPI_FAMILY_DESKTOP_APP))
 
 #include <initguid.h>
+#ifdef HAVE_ALVR
+#include <mfapi.h>
+#include <mfidl.h>
+#include <icodecapi.h>
+#endif
 
 #ifdef HAVE_D3D12
 #include <d3d12.h>

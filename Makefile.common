@@ -2112,6 +2112,10 @@ ifeq ($(HAVE_VIDEO_WINDOWS), 1)
    OBJ += gfx/video_windows.o
 endif
 
+ifneq ($(filter 1,$(HAVE_OPENXR) $(HAVE_ALVR)),)
+   OBJ += gfx/video_xr.o
+endif
+
 ifeq ($(HAVE_OPENXR), 1)
    NEED_CXX_LINKER = 1
    DEFINES += -DHAVE_OPENXR
@@ -2121,7 +2125,6 @@ ifeq ($(HAVE_OPENXR), 1)
           gfx/common/openxr_host.o \
           gfx/common/openxr_swapchain.o \
           gfx/common/openxr_frame.o \
-          gfx/video_xr.o \
           input/common/input_openxr.o
 
    # Desktop GL headset output: a context in the window's share group on
@@ -3327,6 +3330,24 @@ ifneq ($(findstring Win32,$(OS)),)
       ifeq ($(WANT_WGL),1)
          OBJ += gfx/common/win_wgl_dxgi.o
       endif
+   endif
+endif
+
+ifeq ($(HAVE_ALVR), 1)
+   ifneq ($(HAVE_NETWORKING)$(HAVE_THREADS), 11)
+      $(error ALVR requires networking and threads)
+   endif
+   DEFINES += -DHAVE_ALVR -DHAVE_DYLIB
+   OBJ += network/alvr_protocol.o network/alvr_connection.o \
+      network/alvr_stream.o network/alvr_server.o record/record_audio_tap.o
+   ifneq ($(filter Linux,$(OS))$(filter 1,$(HAVE_VULKAN)),)
+      DEFINES += -DHAVE_ALVR_VULKAN
+      OBJ += gfx/common/vulkan_video_encode.o
+   endif
+   ifneq ($(findstring Win32,$(OS)),)
+      OBJ += gfx/common/mf_video_encode.o
+      OBJ += $(filter-out $(OBJ),gfx/common/dx_guids.o)
+      LIBS += -lole32 -loleaut32
    endif
 endif
 

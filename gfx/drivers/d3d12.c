@@ -13335,6 +13335,57 @@ static bool d3d12_set_frame_format(void *data, bool rgb32,
    return true;
 }
 
+#ifdef HAVE_ALVR
+static bool d3d12_record_read_viewport(void *data, uint8_t *buffer, bool bgrx,
+      bool *bottom_up)
+{
+   d3d12_video_t *video = (d3d12_video_t*)data;
+   size_t pixels;
+   if (!video || !video->record.enable || !video->record.streaming)
+      return false;
+
+   if (!d3d12_gfx_read_viewport(data, buffer, true))
+      return false;
+
+   *bottom_up = true;
+   if (bgrx)
+   {
+      pixels = VIDEO_SCALE_AREA(video->vp.dims);
+      while (pixels--)
+      {
+         uint8_t b = buffer[pixels * 3];
+         uint8_t g = buffer[pixels * 3 + 1];
+         uint8_t r = buffer[pixels * 3 + 2];
+         buffer[pixels * 4] = b;
+         buffer[pixels * 4 + 1] = g;
+         buffer[pixels * 4 + 2] = r;
+         buffer[pixels * 4 + 3] = 255;
+      }
+   }
+   return true;
+}
+
+static bool d3d12_record_read(void *data, uint8_t *buffer, bool bgrx,
+      bool full, bool *bottom_up)
+{
+   d3d12_video_t *video = (d3d12_video_t*)data;
+   struct video_viewport saved;
+   bool result;
+   if (!video)
+      return false;
+   saved = video->vp;
+   if (full)
+   {
+      video->vp.pos = VIDEO_POS_PACK(0, 0);
+      video->vp.dims = video->vp.full_dims;
+   }
+   result = d3d12_record_read_viewport(data, buffer, bgrx, bottom_up);
+   video->vp = saved;
+   return result;
+}
+
+#endif
+
 static const video_poke_interface_t d3d12_poke_interface = {
    d3d12_get_flags,
    d3d12_gfx_load_texture,
@@ -13418,7 +13469,11 @@ static const video_poke_interface_t d3d12_poke_interface = {
    NULL, /* import_texture */
 #endif
    NULL, /* get_last_present_sync */
+#ifdef HAVE_ALVR
+   d3d12_record_read,
+#else
    NULL, /* record_read */
+#endif
 #ifdef D3D12_FRAME_IMPORT
    d3d12_import_movie_frame,
 #else

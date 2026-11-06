@@ -107,6 +107,18 @@ jobs:
           sudo samples/network/smb_retro/local_ad_dc_test.sh
           sudo make -C samples/network/smb_retro clean
 
+      - name: ALVR protocol and connection over the loopback
+        run: |
+          make -C samples/network/alvr clean
+          make -C samples/network/alvr SANITIZER=address,undefined
+          ASAN_OPTIONS=detect_leaks=1 make -C samples/network/alvr check
+          python3 samples/network/alvr/capture_test.py
+          make -C samples/network/alvr clean
+          make -C samples/network/alvr CC=x86_64-w64-mingw32-gcc EXE=.exe
+          make -C samples/network/alvr CC=x86_64-w64-mingw32-gcc EXE=.exe RUNNER=wine check
+          CC=x86_64-w64-mingw32-gcc RUNNER=wine python3 samples/network/alvr/capture_test.py
+          make -C samples/network/alvr clean
+
       - name: Embedded MCP server over the loopback
         shell: bash
         working-directory: ${{ github.workspace }}
