@@ -224,6 +224,10 @@ void gfx_ctx_wl_release_kept(void);
 VIDEO_NOINLINE static void video_driver_scanline_before_frame(video_driver_state_t *video_st, uint16_t frame_time_target, uint16_t core_run_time);
 VIDEO_NOINLINE static void video_driver_scanline_after_frame(video_driver_state_t *video_st, uint16_t frame_time_target, uint16_t core_run_time);
 
+#ifdef __SWITCH2__
+unsigned long long sw2_vd_info_us, sw2_vd_mid_us, sw2_vd_drv_us, sw2_vd_tail_us;
+#endif
+
 typedef struct
 {
    struct string_list *list;
@@ -3463,10 +3467,18 @@ bool video_context_driver_set(const gfx_ctx_driver_t *data)
    return true;
 }
 
+#if defined(__SWITCH2__) && defined(HAVE_THREADS)
+void sw2_gl_ctx_ensure_at(int site);
+#endif
+
 uintptr_t video_driver_get_current_framebuffer(void)
 {
    video_driver_state_t *video_st     = &video_driver_st;
    const video_poke_interface_t *poke = video_st->poke;
+#if defined(__SWITCH2__) && defined(HAVE_THREADS)
+   /* the core is about to render into it: its thread has the context */
+   sw2_gl_ctx_ensure_at(1);
+#endif
    if (poke && poke->get_current_framebuffer)
       return poke->get_current_framebuffer(video_st->data);
    return 0;
@@ -9573,6 +9585,10 @@ VIDEO_NOINLINE static void video_driver_frame_statistics(
 void video_driver_frame(const void *data, unsigned width,
       unsigned height, size_t pitch)
 {
+#ifdef __SWITCH2__
+   retro_time_t sw2_t0 = cpu_features_get_time_usec();
+   retro_time_t sw2_t1 = sw2_t0;
+#endif
    char status_text[256];
    unsigned dims        = VIDEO_SCALE_PACK(width, height);
    settings_t *settings = config_get_ptr();
@@ -9705,6 +9721,13 @@ void video_driver_frame(const void *data, unsigned width,
 
    video_driver_build_info(&video_info);
    recording_gpu_frame_info(&video_info, true);
+#ifdef __SWITCH2__
+   {
+      retro_time_t n = cpu_features_get_time_usec();
+      sw2_vd_info_us += (unsigned long long)(n - sw2_t0);
+      sw2_t1 = n;
+   }
+#endif
 #ifdef HAVE_OPENXR
    /* The eyes the core drew this frame from, for the drawing thread */
    video_info.vr_give = video_driver_vr_give_take();
@@ -10346,6 +10369,13 @@ void video_driver_frame(const void *data, unsigned width,
       /* The text this frame draws is drawn inside the driver's frame -
        * on the video thread when it is threaded, which marks the frame
        * there instead */
+#ifdef __SWITCH2__
+      {
+         retro_time_t n = cpu_features_get_time_usec();
+         sw2_vd_mid_us += (unsigned long long)(n - sw2_t1);
+         sw2_t1 = n;
+      }
+#endif
       if (!VIDEO_DRIVER_IS_THREADED_INTERNAL(video_st))
          font_driver_frame_begin();
       if (frame_cb(
@@ -10363,6 +10393,13 @@ void video_driver_frame(const void *data, unsigned width,
          video_st->main_flags |=  VIDEO_FLAG_ACTIVE;
       else
          video_st->main_flags &= ~VIDEO_FLAG_ACTIVE;
+#ifdef __SWITCH2__
+      {
+         retro_time_t n = cpu_features_get_time_usec();
+         sw2_vd_drv_us += (unsigned long long)(n - sw2_t1);
+         sw2_t1 = n;
+      }
+#endif
 
 #ifdef HAVE_VIDEO_FILTER
       if (filter_lent)
@@ -10503,6 +10540,9 @@ void video_driver_frame(const void *data, unsigned width,
    if (video_info.scanline_sync && !video_info.input_driver_nonblock_state)
       video_driver_scanline_after_frame(video_st,
             video_info.frame_time_target, runloop_st->core_run_time);
+#ifdef __SWITCH2__
+   sw2_vd_tail_us += (unsigned long long)(cpu_features_get_time_usec() - sw2_t1);
+#endif
 }
 
 static void video_driver_reinit_context(settings_t *settings, int flags)
