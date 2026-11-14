@@ -142,6 +142,12 @@ static void vulkan_session_feature_key(vulkan_session_key_t *key,
                VkPhysicalDevice16BitStorageFeatures, storageBuffer16BitAccess, storageInputOutput16);
          VULKAN_SESSION_FEATURE(VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_8BIT_STORAGE_FEATURES,
                VkPhysicalDevice8BitStorageFeatures, storageBuffer8BitAccess, storagePushConstant8);
+         VULKAN_SESSION_FEATURE(VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTENDED_DYNAMIC_STATE_FEATURES_EXT,
+               VkPhysicalDeviceExtendedDynamicStateFeaturesEXT, extendedDynamicState, extendedDynamicState);
+         VULKAN_SESSION_FEATURE(VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTENDED_DYNAMIC_STATE_2_FEATURES_EXT,
+               VkPhysicalDeviceExtendedDynamicState2FeaturesEXT, extendedDynamicState2, extendedDynamicState2PatchControlPoints);
+         VULKAN_SESSION_FEATURE(VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTENDED_DYNAMIC_STATE_3_FEATURES_EXT,
+               VkPhysicalDeviceExtendedDynamicState3FeaturesEXT, extendedDynamicState3TessellationDomainOrigin, extendedDynamicState3ShadingRateImageEnable);
 #ifdef VK_KHR_unified_image_layouts
          VULKAN_SESSION_FEATURE(VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_UNIFIED_IMAGE_LAYOUTS_FEATURES_KHR,
                VkPhysicalDeviceUnifiedImageLayoutsFeaturesKHR, unifiedImageLayouts, unifiedImageLayoutsVideo);

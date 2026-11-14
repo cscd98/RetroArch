@@ -1435,6 +1435,9 @@ static void test_session_keys(void)
    VkDeviceCreateInfo device_info = {0};
    VkDeviceQueueCreateInfo queue_info = {0};
    VkPhysicalDeviceTimelineSemaphoreFeatures a = {0}, b = {0};
+   VkPhysicalDeviceExtendedDynamicStateFeaturesEXT dynamic = {0};
+   VkPhysicalDeviceExtendedDynamicState2FeaturesEXT dynamic2 = {0};
+   VkPhysicalDeviceExtendedDynamicState3FeaturesEXT dynamic3 = {0};
    VkBaseInStructure unknown = {0};
    vulkan_session_key_t first, second;
    float priority = 1.0f;
@@ -1502,6 +1505,25 @@ static void test_session_keys(void)
    unknown.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
    second = vulkan_session_device_key((VkPhysicalDevice)(uintptr_t)1, &device_info);
    CHECK(second.failed && !vulkan_session_key_equal(&first, &second));
+   vulkan_session_key_free(&first);
+   vulkan_session_key_free(&second);
+
+   dynamic.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTENDED_DYNAMIC_STATE_FEATURES_EXT;
+   dynamic.extendedDynamicState = VK_TRUE;
+   dynamic.pNext = &dynamic2;
+   dynamic2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTENDED_DYNAMIC_STATE_2_FEATURES_EXT;
+   dynamic2.extendedDynamicState2 = VK_TRUE;
+   dynamic2.pNext = &dynamic3;
+   dynamic3.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTENDED_DYNAMIC_STATE_3_FEATURES_EXT;
+   dynamic3.extendedDynamicState3ColorBlendEnable = VK_TRUE;
+   device_info.pNext = &dynamic;
+   first = vulkan_session_device_key((VkPhysicalDevice)(uintptr_t)1, &device_info);
+   second = vulkan_session_device_key((VkPhysicalDevice)(uintptr_t)1, &device_info);
+   CHECK(vulkan_session_key_equal(&first, &second));
+   vulkan_session_key_free(&second);
+   dynamic3.extendedDynamicState3ColorBlendEnable = VK_FALSE;
+   second = vulkan_session_device_key((VkPhysicalDevice)(uintptr_t)1, &device_info);
+   CHECK(!vulkan_session_key_equal(&first, &second));
    vulkan_session_key_free(&first);
    vulkan_session_key_free(&second);
 }
