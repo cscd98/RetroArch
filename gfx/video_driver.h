@@ -190,7 +190,8 @@ enum video_driver_state_flags
    VIDEO_FLAG_FF_DECIDED                          = (1 << 25),
    /* main_flags: frames go to video_null.frame, whichever driver
     * is up (video_driver_set_stub_frame) */
-   VIDEO_FLAG_STUB_FRAME                          = (1 << 26)
+   VIDEO_FLAG_STUB_FRAME                          = (1 << 26),
+   VIDEO_FLAG_KEEP_VULKAN_SESSION                 = (1 << 27)
 };
 
 /* Driver pacing: the graphics driver releases each frame (NVIDIA

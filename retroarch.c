@@ -132,6 +132,9 @@
 #include "location_driver.h"
 
 #include "runloop.h"
+#ifdef HAVE_VULKAN
+#include "gfx/common/vulkan_common.h"
+#endif
 #include "camera/camera_driver.h"
 #include "location_driver.h"
 #include "record/record_driver.h"
@@ -2253,7 +2256,10 @@ void driver_uninit(int flags, enum driver_lifetime_flags lifetime_flags)
                                 | DRIVER_LIFETIME_SESSION_SWITCH))
             && (flags & DRIVER_VIDEO_MASK),
             video_st->data);
+      if (lifetime_flags & DRIVER_LIFETIME_SESSION_SWITCH)
+         video_driver_modify_disp_flags(VIDEO_FLAG_KEEP_VULKAN_SESSION, 0);
       video_driver_free_internal();
+      video_driver_modify_disp_flags(0, VIDEO_FLAG_KEEP_VULKAN_SESSION);
 #ifdef HAVE_THREADS
 #ifndef RETRO_ATOMIC_HAS_PTR
       /* The volatile-backend title fallback's lock - the only
@@ -7121,6 +7127,9 @@ void main_exit(void *args)
    runloop_core_probe_cache_free();
 #endif
    driver_uninit(DRIVERS_CMD_ALL, (enum driver_lifetime_flags)0);
+#ifdef HAVE_VULKAN
+   vulkan_context_session_cache_free();
+#endif
    /* an input driver kept for drivers that then failed to start */
    input_driver_drop_kept();
 

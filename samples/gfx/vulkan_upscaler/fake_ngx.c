@@ -212,7 +212,7 @@ EXPORT int CONV NVSDK_NGX_VULKAN_GetFeatureDeviceExtensionRequirements(void *ins
       return FAIL | 12;
    }
    strcpy(device_exts[0].name, "VK_KHR_maintenance1");
-   strcpy(device_exts[1].name, "VK_NVX_binary_import");
+   strcpy(device_exts[1].name, "VK_RETROARCH_test_missing_extension");
    *count = 2; *props = device_exts; return OK;
 }
 EXPORT int CONV NVSDK_NGX_VULKAN_GetFeatureRequirements(void *inst, void *pd, const void *info, void *out)
