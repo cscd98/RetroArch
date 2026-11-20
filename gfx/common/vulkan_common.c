@@ -2508,7 +2508,11 @@ static bool vulkan_context_init_device(gfx_ctx_vulkan_data_t *vk)
             cached_destroy_device_vk   = NULL;
          }
 
-         video_driver_cache_context_ack_set();
+#ifdef __SWITCH2__
+         /* Keeping the device does not preserve a new core's render state. */
+         if (video_st->hw_render.cache_context)
+#endif
+            video_driver_cache_context_ack_set();
          RARCH_LOG("[Vulkan] Using cached Vulkan context.\n");
       }
       else
