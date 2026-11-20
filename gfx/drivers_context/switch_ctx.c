@@ -53,7 +53,11 @@ static void switch_ctx_get_video_size(void *data,
    {
       default:
       case AppletOperationMode_Handheld:
+#ifdef __SWITCH2__
+         *dims = VIDEO_SCALE_PACK(1920, 1080);
+#else
          *dims = VIDEO_SCALE_PACK(1280, 720);
+#endif
          break;
       case AppletOperationMode_Console:
          *dims = VIDEO_SCALE_PACK(1920, 1080);
